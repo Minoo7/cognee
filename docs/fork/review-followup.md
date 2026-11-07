@@ -27,4 +27,25 @@ The first source transfer preserved `14b3f6f22` exactly. The second preserved in
 
 The integration acceptance used real native API requests and disposable storage. Synthetic rows supplemented null/zero, unknown outcome and background contract cases; they are not evidence of natural agent capture. Q/A capture and failed improve were actual API calls. Graph improvement failed because the offline embedding model was unavailable. Successful graph improvement is not established.
 
-The subsequent per-request auth correction requires its own final focused tests, build and native-browser check. Docker image builds, production deployment and MCP lock alignment remain outside the completed acceptance. Production was not changed.
+Final verification of `31141d0942b6780cc721af48ecbcffe586cd2b0d` stopped on a
+focused-test failure: `cognee-frontend/src/modules/sessions/__tests__/sessionOperations.test.ts:30`
+expects fetch options `{ signal }`, but the reader now supplies
+`{ signal, authErrors: "throw" }`. The single exact-path run completed 27 suites
+(26 passed, 1 failed), with 277 tests passed, 1 failed and 0 skipped. All 12
+localFetch cases passed, including the new opt-in errors, option stripping and
+retained legacy handler dispatch. They use mocked HTTP and a mocked auth handler.
+
+Per the stop-on-failure instruction, no application/test fixes or repeat run were
+made. Scoped lint, the production Webpack build, Python checks and current-build
+native API/browser acceptance were not reached. There is no current verified build
+ID or current-browser Sign in-link proof; earlier native acceptance is not a green
+result for this source. See [receipts/final-verification.json](receipts/final-verification.json)
+for the exact command, counts, failure, source/log hashes and cleanup. Ports
+8000/3000/3443 are stopped, and prior sandbox dependencies and records are retained.
+
+Public GitHub fetch and remote readback verify published stable
+`31e36259aa8a3fc696fdff140feb1bd5f9b9174b` and feature
+`31141d0942b6780cc721af48ecbcffe586cd2b0d`; stable is an ancestor of feature.
+This verifies publication, not successful final runtime validation. Docker image
+builds, production deployment and MCP lock alignment remain outside the completed
+acceptance. Production was not changed.

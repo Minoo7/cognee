@@ -11,7 +11,7 @@ The installation layer retains its native TLS/runtime configuration changes; no 
 | Surface | State | Native boundary / remaining work |
 | --- | --- | --- |
 | Activity | Implemented | Raw operation and pipeline rows from `GET /api/v1/activity/pipeline-runs`; Refresh and Load more, 50 rows per page, typed read failures, partial/stale states, null metrics retained. |
-| Session recorded processing | Implemented | Explicit `(user_id, session_id)` associations only, independent cancellable detail/history requests, exact owner/session Activity links. Stored detail status and computed list status are separate. |
+| Session recorded processing | Implemented with attribution limits | Explicit session links plus a same-caller check: run `user_id` is the caller, not a stored composite session-owner association. This can omit work triggered by a parent account. Older children linked only through parent operations are not reconstructed. Detail/history requests are independent and cancellable; stored detail status and computed list status are separate. |
 | API-key management | Deferred, native API backed | Native key endpoints need a scoped CRUD UI and permission handling. |
 | Analytics | Deferred, native API backed | Native recorded usage can support a future view with explicit coverage and aggregation semantics. No fabricated prices or savings. |
 | Memory Coverage | Not implemented | Needs a defined job/service and coverage semantics; activity rows alone cannot establish coverage. |
@@ -29,7 +29,10 @@ has no snapshot cursor or total: concurrent inserts can shift offsets and omit o
 records. Refresh starts again at the newest page; no completeness claim is made.
 
 Session history requests send `session_id`, then recheck **both** returned `user_id` and
-`session_ids` against the selected owner and session. Dataset identity, temporal proximity,
+`session_ids` against the selected owner and session. Run `user_id` identifies the caller;
+matching it to the selected owner is an assumption, not a backend composite ownership
+relation. It may omit parent-account-triggered work. Older child records linked only
+through a parent operation are not reconstructed. Dataset identity, temporal proximity,
 and unstamped rows never prove association. Datasetless and multi-session records work.
 The processing view keeps the newest recorded state per explicit pipeline run ID; Activity
 preserves every row. Parent operation IDs refer to run IDs, not row IDs. No parent/child
@@ -136,12 +139,12 @@ It was displayed literally, with no session association or completion claim.
 Three explicitly named `seeded-*` ledger rows supplement natural capture:
 unknown outcome `future_outcome`, nullable/zero metrics, a nullable user, and
 background acceptance. They are **synthetic contract fixtures**. They verify literal
-rendering and composite-owner filtering, not native recording of those states.
+rendering and the same-caller/session filter, not native recording of those states.
 A regular-member tenant fixture exercises the real `/activity/users` 403 gate.
 One request made in the fixture's wrong active tenant also recorded a genuine
 permission failure; restoring the dataset's default scope allowed the no-op check.
 
-Verified on the integrated source in this checkout:
+Verified on the earlier integrated source `1d156bfd` (not revalidated on `31141d094`):
 
 - Focused frontend: **24 suites / 206 tests passed** (188 module/installation tests
   plus 18 explicitly selected route/hook tests). The transport regression jointly
@@ -177,6 +180,29 @@ files are executable Python integration commands. Browser screenshots use
 `natural-*`, `seeded-*` and `actual-401-*` names. Task-owned listeners are stopped
 after final acceptance; dependencies and records remain for inspection.
 
+### Final source verification: stopped on failure
+
+The clean checkout fast-forwarded to published feature head
+`31141d0942b6780cc721af48ecbcffe586cd2b0d`. One exact-path Jest run completed
+**27 suites: 26 passed, 1 failed; 278 tests: 277 passed, 1 failed, 0 skipped**.
+These counts include the route/components/hooks and installation regressions in the
+same run; they do not add overlapping earlier results. All **12 localFetch tests**
+passed, including opted-in 401/403, stripping `authErrors`, and default legacy auth
+handler dispatch. Those tests mock HTTP and the handler; they are not browser proof.
+
+The blocker is `src/modules/sessions/__tests__/sessionOperations.test.ts:30` under
+`cognee-frontend`: its exact fetch-call assertion expects `{ signal }`, while the
+reader now sends `{ signal, authErrors: "throw" }`. Verification stopped as instructed,
+without application or test edits. Scoped lint, the current production Webpack build,
+Python checks and current-source native API/browser acceptance were **not run**.
+There is no verified build ID for this source. Earlier API/browser/restart receipts
+remain evidence for their earlier source only. Source `31141d094` is **not green**.
+
+The exact command, per-suite counts, failure, source/log hashes, prior natural versus
+seeded evidence boundaries and cleanup are in
+[receipts/final-verification.json](receipts/final-verification.json). API/UI/TLS ports
+8000/3000/3443 have no listeners; dependencies and prior records remain on the sandbox.
+
 ## Publication and integration
 
 The sandbox GitHub helper's earlier **403** was bypassed through source-only bundle
@@ -190,7 +216,7 @@ The current feature branch preserves that published commit, includes runtime fix
 `adaf47a44`, and merges `selfhost/stable` at `31e36259aa8a3fc696fdff140feb1bd5f9b9174b`
 with `--no-ff`. Runtime URL configuration and Activity/Sessions typed denial handling
 are both retained. The installation checkout and `main` were not edited.
-Both branch heads are exported together for parent publication with:
+The earlier integrated heads were exported together for parent publication with:
 
 ```sh
 git bundle create /tmp/cognee-fork-integrated.bundle \
@@ -206,5 +232,9 @@ curl --connect-timeout 10 --max-time 120 --fail-with-body --silent --show-error 
 
 The integrated bundle heads/hash and receiver receipt are recorded separately in
 `/tmp/cognee-activity-acceptance-14b3f6f/integrated-transfer.json`, so the bundle
-never contains its own changing hash. Parent publication of the integrated heads
-is a separate action; this checkout performs no push.
+never contains its own changing hash. Public GitHub fetch and `ls-remote` now verify
+`selfhost/stable` at `31e36259aa8a3fc696fdff140feb1bd5f9b9174b` and
+`experiment/cloud-features` at `31141d0942b6780cc721af48ecbcffe586cd2b0d`, with stable
+an ancestor of feature. Publication is verified independently of the failed final
+check above. This checkout performs no push; the documentation-only validation
+bundle is handed to the parent.

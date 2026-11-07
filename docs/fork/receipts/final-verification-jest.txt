@@ -1,0 +1,165 @@
+PASS src/utils/__tests__/useBoundedPoll.test.ts
+PASS src/services/http/__tests__/errors.test.ts
+PASS src/modules/datasets/__tests__/describeTextBlob.test.ts
+PASS src/utils/__tests__/sessionRoutes.test.ts
+PASS src/app/(app)/sessions/partials/__tests__/useSessionProcessing.test.tsx
+PASS src/app/(app)/activity/__tests__/activity.test.tsx
+PASS src/ui/layout/__tests__/FilterContext.test.tsx
+PASS src/app/(app)/sessions/__tests__/recordedSession.test.tsx
+PASS src/ui/layout/__tests__/TopBarUserName.test.tsx
+PASS src/ui/layout/__tests__/NameWorkspaceModal.test.tsx
+PASS src/modules/users/__tests__/useCurrentUser.test.tsx
+PASS src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx
+PASS src/app/api/__tests__/authenticatedProxies.test.ts
+  ● Console
+
+    console.log
+      [api/schema/inventory] request received, dataset_id: brain
+
+      at log (src/app/api/schema/inventory/route.ts:9:11)
+
+    console.log
+      [api/schema/inventory] forwarding to: https://backend.example.test:8443/api/v1/schema/inventory?dataset_id=brain&samples_per_type=5&sort=count
+
+      at log (src/app/api/schema/inventory/route.ts:26:11)
+
+    console.log
+      [api/schema/inventory] backend response status: 200
+
+      at log (src/app/api/schema/inventory/route.ts:30:13)
+
+    console.log
+      [api/schema/inventory] success, items: 0
+
+      at log (src/app/api/schema/inventory/route.ts:39:13)
+
+    console.log
+      [api/schema/inventory] request received, dataset_id: brain
+
+      at log (src/app/api/schema/inventory/route.ts:9:11)
+
+    console.log
+      [api/schema/inventory] forwarding to: https://backend.example.test:8443/api/v1/schema/inventory?dataset_id=brain&samples_per_type=5&sort=count
+
+      at log (src/app/api/schema/inventory/route.ts:26:11)
+
+    console.log
+      [api/schema/inventory] backend response status: 401
+
+      at log (src/app/api/schema/inventory/route.ts:30:13)
+
+    console.error
+      [api/schema/inventory] backend error body: unauthorized
+
+      32 |     if (!response.ok) {
+      33 |       const body = await response.text().catch(() => "(unreadable)");
+    > 34 |       console.error("[api/schema/inventory] backend error body:", body);
+         |               ^
+      35 |       return NextResponse.json({ error: `Backend returned ${response.status}`, detail: body }, { status: response.status });
+      36 |     }
+      37 |
+
+      at error (src/app/api/schema/inventory/route.ts:34:15)
+      at src/app/api/__tests__/authenticatedProxies.test.ts:40:20
+
+PASS src/modules/config/__tests__/runtimeConfig.test.ts
+PASS src/modules/sessions/__tests__/activityRows.test.ts
+PASS src/modules/instances/__tests__/localFetch.test.ts
+FAIL src/modules/sessions/__tests__/sessionOperations.test.ts
+  ● reads native bare-array pages of 50, encoded session only, with cancellation
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+      "/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B",
+      Object {
+    +   "authErrors": "throw",
+        "signal": AbortSignal {},
+      },
+
+    Number of calls: 1
+
+      28 |   const page = await getRecordedRuns(source, { sessionId: "A / B", offset: 50 }, signal);
+      29 |   expect(page.nextOffset).toBe(100);
+    > 30 |   expect(source.fetch).toHaveBeenCalledWith("/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B", { signal });
+         |                        ^
+      31 |   expect((await getRecordedRuns(instance([]), { offset: 0 }, signal)).nextOffset).toBeNull();
+      32 | });
+      33 | it("preserves null, zero, noop, unknown and background literally", async () => {
+
+      at Object.toHaveBeenCalledWith (src/modules/sessions/__tests__/sessionOperations.test.ts:30:24)
+
+PASS src/modules/sessions/__tests__/listSearchSessions.test.ts
+PASS src/modules/users/__tests__/getUser.test.ts
+PASS src/modules/sessions/__tests__/envNumber.test.ts
+PASS src/modules/config/__tests__/serverRuntimeConfig.test.ts
+PASS src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts
+  ● Console
+
+    console.warn
+      [getSessions] sessions-availability probe failed: pod down
+
+      471 |     .then((r) => r.ok)
+      472 |     .catch((err) => {
+    > 473 |       console.warn("[getSessions] sessions-availability probe failed:", err instanceof Error ? err.message : err);
+          |               ^
+      474 |       return false;
+      475 |     });
+      476 |   const entry = { promise: probe, expiresAt: Infinity };
+
+      at warn (src/modules/sessions/getSessions.ts:473:15)
+
+PASS src/modules/users/__tests__/getLocalUser.test.ts
+PASS src/modules/tenant/__tests__/createWorkspace.test.ts
+  ● Console
+
+    console.log
+      [LOCAL-API] → POST http://localhost:8000/api/v1/permissions/tenants?tenant_name=Plana%20Team
+
+      at log (src/modules/instances/localFetch.ts:29:11)
+
+    console.log
+      [LOCAL-API] ← POST http://localhost:8000/api/v1/permissions/tenants?tenant_name=Plana%20Team — 200 OK
+
+      at log (src/modules/instances/localFetch.ts:43:15)
+
+PASS src/modules/tenant/__tests__/localTenantApi.test.ts
+PASS src/modules/users/__tests__/getLocalApiUrl.test.ts
+PASS src/modules/sessions/__tests__/normalizeSessionRows.test.ts
+
+Summary of all failing tests
+FAIL src/modules/sessions/__tests__/sessionOperations.test.ts
+  ● reads native bare-array pages of 50, encoded session only, with cancellation
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    - Expected
+    + Received
+
+      "/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B",
+      Object {
+    +   "authErrors": "throw",
+        "signal": AbortSignal {},
+      },
+
+    Number of calls: 1
+
+      28 |   const page = await getRecordedRuns(source, { sessionId: "A / B", offset: 50 }, signal);
+      29 |   expect(page.nextOffset).toBe(100);
+    > 30 |   expect(source.fetch).toHaveBeenCalledWith("/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B", { signal });
+         |                        ^
+      31 |   expect((await getRecordedRuns(instance([]), { offset: 0 }, signal)).nextOffset).toBeNull();
+      32 | });
+      33 | it("preserves null, zero, noop, unknown and background literally", async () => {
+
+      at Object.toHaveBeenCalledWith (src/modules/sessions/__tests__/sessionOperations.test.ts:30:24)
+
+
+Test Suites: 1 failed, 26 passed, 27 total
+Tests:       1 failed, 277 passed, 278 total
+Snapshots:   0 total
+Time:        4.853 s
+Ran all test suites within paths "src/modules/sessions/__tests__/activityRows.test.ts", "src/modules/sessions/__tests__/envNumber.test.ts", "src/modules/sessions/__tests__/listSearchSessions.test.ts", "src/modules/sessions/__tests__/normalizeSessionRows.test.ts", "src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts", "src/modules/sessions/__tests__/sessionOperations.test.ts", "src/modules/config/__tests__/runtimeConfig.test.ts", "src/modules/config/__tests__/serverRuntimeConfig.test.ts", "src/app/(app)/activity/__tests__/activity.test.tsx", "src/app/(app)/sessions/__tests__/recordedSession.test.tsx", "src/app/(app)/sessions/partials/__tests__/useSessionProcessing.test.tsx", "src/modules/instances/__tests__/localFetch.test.ts", "src/modules/tenant/__tests__/localTenantApi.test.ts", "src/modules/tenant/__tests__/createWorkspace.test.ts", "src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx", "src/modules/users/__tests__/getLocalApiUrl.test.ts", "src/modules/users/__tests__/getLocalUser.test.ts", "src/modules/users/__tests__/getUser.test.ts", "src/modules/users/__tests__/useCurrentUser.test.tsx", "src/app/api/__tests__/authenticatedProxies.test.ts", "src/ui/layout/__tests__/NameWorkspaceModal.test.tsx", "src/ui/layout/__tests__/TopBarUserName.test.tsx", "src/ui/layout/__tests__/FilterContext.test.tsx", "src/modules/datasets/__tests__/describeTextBlob.test.ts", "src/services/http/__tests__/errors.test.ts", "src/utils/__tests__/sessionRoutes.test.ts", "src/utils/__tests__/useBoundedPoll.test.ts".
+Test results written to: ../../../../../tmp/cognee-activity-acceptance-14b3f6f/verification-311/jest.json
