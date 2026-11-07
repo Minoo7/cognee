@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import Page from "../page";
-import SelfImprovementCard from "../../sessions/partials/SelfImprovementCard";
+import RecordedProcessingCard from "../../sessions/partials/RecordedProcessingCard";
 import { useRecordedRuns } from "../../sessions/partials/useSessionProcessing";
 import { run } from "@/modules/sessions/testSupport/recordedFixtures";
 let params = new URLSearchParams();
@@ -55,7 +55,7 @@ it("refuses a session link without owner instead of broadening the feed", async 
 });
 it("session card for unstamped history says unavailable, never claims a saving failure", async () => {
   fetch.mockResolvedValue(response([run({ session_ids: [] })]));
-  function Card() { const history = useRecordedRuns(instance, { sessionId: "A", userId: "owner" }); return <SelfImprovementCard identity={{ sessionId: "A", userId: "owner" }} history={history} />; }
+  function Card() { const history = useRecordedRuns(instance, { sessionId: "A", userId: "owner" }); return <RecordedProcessingCard identity={{ sessionId: "A", userId: "owner" }} history={history} />; }
   render(<Card />);
   await waitFor(() => expect(screen.getByText("No linked processing records available.")).toBeInTheDocument());
   expect(screen.getByRole("link", { name: "View raw records in Activity" })).toHaveAttribute("href", "/activity?session=A&owner=owner");

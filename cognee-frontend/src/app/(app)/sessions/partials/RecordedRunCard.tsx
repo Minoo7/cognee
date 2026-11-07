@@ -2,7 +2,7 @@
 
 import type { RecordedRun } from "@/modules/sessions/sessionOperations";
 
-export default function ImproveCard({ run }: { run: RecordedRun }) {
+export default function RecordedRunCard({ run }: { run: RecordedRun }) {
   return (
     <article style={{ border: "1px solid rgba(188,155,255,0.35)", borderRadius: 10, padding: 14, fontSize: 12, overflowWrap: "anywhere" }}>
       <strong style={{ color: "#BC9BFF" }}>{run.operation_name ?? run.pipeline_name ?? "Name not recorded"}</strong>

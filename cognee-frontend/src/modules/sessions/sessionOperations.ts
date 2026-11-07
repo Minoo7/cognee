@@ -43,7 +43,7 @@ export async function getRecordedRuns(instance: CogneeInstance,
   query: { sessionId?: string; offset: number }, signal: AbortSignal): Promise<RunPage> {
   const params = new URLSearchParams({ limit: "50", offset: String(query.offset) });
   if (query.sessionId !== undefined) params.set("session_id", query.sessionId);
-  const response = await instance.fetch(`/v1/activity/pipeline-runs?${params}`, { signal });
+  const response = await instance.fetch(`/v1/activity/pipeline-runs?${params}`, { signal, authErrors: "throw" });
   if (!response.ok) return toHttpError(response);
   const data: unknown = await response.json();
   if (!Array.isArray(data)) throw new RecordingSchemaError("Expected pipeline-runs bare array");
@@ -51,10 +51,9 @@ export async function getRecordedRuns(instance: CogneeInstance,
   return { rows, nextOffset: rows.length === 50 ? query.offset + 50 : null };
 }
 
-/** No capability probes or swallowed errors. Reject ambiguous owner responses. */
 export async function getSessionDetailStrict(instance: CogneeInstance,
   identity: SessionIdentity, signal: AbortSignal): Promise<SessionDetail> {
-  const response = await instance.fetch(`/v1/sessions/${encodeURIComponent(identity.sessionId)}`, { signal });
+  const response = await instance.fetch(`/v1/sessions/${encodeURIComponent(identity.sessionId)}`, { signal, authErrors: "throw" });
   if (!response.ok) return toHttpError(response);
   const row = object(await response.json());
   if (row.session_id !== identity.sessionId || row.user_id !== identity.userId) {
@@ -70,13 +69,11 @@ export async function getSessionDetailStrict(instance: CogneeInstance,
   return row as unknown as SessionDetail;
 }
 
-/** Only explicit composite ownership proves association; datasets prove nothing. */
 export function selectSessionRecords(identity: SessionIdentity, rows: readonly RecordedRun[]): RecordedRun[] {
   return rows.filter((row) => row.user_id === identity.userId && row.session_ids.includes(identity.sessionId));
 }
 
-/** Processing view keeps the newest recorded state per pipeline run, without usage sums. */
-export function selectSessionProcessing(identity: SessionIdentity, rows: readonly RecordedRun[]): RecordedRun[] {
+export function latestSessionRecords(identity: SessionIdentity, rows: readonly RecordedRun[]): RecordedRun[] {
   const states = new Map<string, RecordedRun>();
   for (const row of selectSessionRecords(identity, rows)) {
     const key = row.kind === "pipeline" && row.pipeline_run_id ? `pipeline:${row.pipeline_run_id}` : `row:${row.id}`;
@@ -91,8 +88,11 @@ export function mergeRecordedRows(previous: readonly RecordedRun[], page: readon
   for (const row of page) if (!rows.has(row.id)) rows.set(row.id, row);
   return [...rows.values()];
 }
+export function recordingErrorStatus(error: unknown): number | null {
+  return error && typeof error === "object" && "status" in error && typeof error.status === "number" ? error.status : null;
+}
 export function recordingError(error: unknown): string {
-  const status = error && typeof error === "object" && "status" in error ? error.status : null;
+  const status = recordingErrorStatus(error);
   if (status === 401) return "Sign in required (401).";
   if (status === 403) return "Permission denied (403).";
   if (status === 404) return "Session unavailable or not visible (404).";
@@ -101,5 +101,5 @@ export function recordingError(error: unknown): string {
 export function isAccessDenied(error: unknown): boolean {
   return error instanceof HttpError && [401, 403].includes(error.status);
 }
-export const HISTORY_NOTICE = "Recording is best-effort; historical session links were not backfilled. Missing links do not establish whether memory was saved. Offset paging is not a snapshot and may miss rows as new records arrive; Refresh reads the newest page.";
+export const HISTORY_NOTICE = "Recording is best-effort. This session view shows explicit links recorded by its owner; processing started by another account and older parent-linked runs may be absent. Missing records do not establish whether memory was saved. Offset paging is not a snapshot; Refresh reads the newest page.";
 export const BACKGROUND_NOTICE = "Background is recorded metadata: generic background success may mean acceptance/start; improve defers its record until the call finishes. Neither proves completion of every child stage or the whole lifecycle.";

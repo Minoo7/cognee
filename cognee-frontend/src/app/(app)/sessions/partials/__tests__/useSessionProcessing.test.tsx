@@ -50,7 +50,6 @@ it("deduplicates offset pages by row id and retains latest state across pages", 
   const fetch = jest.fn().mockResolvedValueOnce(response(rows)).mockResolvedValueOnce(response([rows[49], run({ id: "late" })]));
   const sourceInstance = source(fetch);
   const { result } = renderHook(() => useRecordedRuns(sourceInstance));
-  // Source must be stable across renders.
   await waitFor(() => expect(result.current.loading).toBe(false));
   expect(result.current.nextOffset).toBe(50);
   act(() => { result.current.loadMore(); result.current.loadMore(); });

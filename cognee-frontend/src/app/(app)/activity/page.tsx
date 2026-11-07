@@ -26,7 +26,7 @@ export default function Page() {
             {identity && <span>Session: {identity.sessionId} · Owner: {identity.userId} · <a href="/activity">Clear filter</a></span>}
           </div>
           {(isInitializing || history.loading) && <div role="status">Loading activity…<SkeletonBar width={220} /></div>}
-          {history.error && <p role="alert">{history.error} <button onClick={history.refresh}>Retry</button></p>}
+          {history.error && <p role="alert">{history.error} <button onClick={history.refresh}>Retry</button> {history.errorStatus === 401 && <a href="/local-login">Sign in</a>}</p>}
           {history.stale && <p role="status">Stale records retained after a read failure.</p>}
           {!history.loading && !history.error && history.rows.length === 0 && <p>{identity ? "No linked processing records available." : "No recorded activity available."}</p>}
           {history.rows.length > 0 && <div style={{ overflowX: "auto", marginTop: 12 }}>

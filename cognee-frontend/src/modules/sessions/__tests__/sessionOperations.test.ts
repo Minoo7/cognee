@@ -1,4 +1,4 @@
-import { getRecordedRuns, getSessionDetailStrict, mergeRecordedRows, selectSessionProcessing, selectSessionRecords, RecordingSchemaError } from "../sessionOperations";
+import { getRecordedRuns, getSessionDetailStrict, mergeRecordedRows, latestSessionRecords, selectSessionRecords, RecordingSchemaError } from "../sessionOperations";
 import type { CogneeInstance } from "@/modules/instances/types";
 import { run, detail } from "../testSupport/recordedFixtures";
 const identity = { userId: "owner", sessionId: "A" };
@@ -8,8 +8,8 @@ function instance(data: unknown, status = 200): CogneeInstance {
 }
 it("two sessions sharing a dataset: only A has recorded processing", () => {
   const rows = [run(), run({ id: "unstamped", session_ids: [] })];
-  expect(selectSessionProcessing(identity, rows)).toEqual([rows[0]]);
-  expect(selectSessionProcessing({ ...identity, sessionId: "B" }, rows)).toEqual([]);
+  expect(latestSessionRecords(identity, rows)).toEqual([rows[0]]);
+  expect(latestSessionRecords({ ...identity, sessionId: "B" }, rows)).toEqual([]);
 });
 it("requires the composite owner, retains datasetless and multi-session links", () => {
   const rows = [run({ id: "other-owner", user_id: "other" }), run({ id: "datasetless", dataset_id: null, session_ids: ["A", "B"] }), run({ id: "unknown-owner", user_id: null })];
@@ -20,7 +20,7 @@ it("collapses only explicit pipeline run state across pages, never parent/child 
   const rows = [run(), run({ id: "child-start", kind: "pipeline", parent_operation_id: "run-1", pipeline_run_id: "child", status: "STARTED" }),
     run({ id: "child-end", kind: "pipeline", parent_operation_id: "run-1", pipeline_run_id: "child", status: "COMPLETED", created_at: "2026-01-01T00:01:00Z" }),
     run({ id: "separate", pipeline_run_id: "other" })];
-  expect(selectSessionProcessing(identity, rows).map((r) => r.id)).toEqual(["child-end", "separate", "row-1"]);
+  expect(latestSessionRecords(identity, rows).map((r) => r.id)).toEqual(["child-end", "separate", "row-1"]);
   expect(mergeRecordedRows(rows, [rows[0]])).toHaveLength(4);
 });
 it("reads native bare-array pages of 50, encoded session only, with cancellation", async () => {
@@ -47,5 +47,5 @@ it("rejects another owner's detail for an identical session ID", async () => {
 
 it("keeps operation row IDs separate from pipeline run IDs", () => {
   const rows = [run({ id: "shared-id" }), run({ id: "pipeline-state", kind: "pipeline", pipeline_run_id: "shared-id" })];
-  expect(selectSessionProcessing(identity, rows)).toHaveLength(2);
+  expect(latestSessionRecords(identity, rows)).toHaveLength(2);
 });

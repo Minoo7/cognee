@@ -14,7 +14,7 @@ import {
   type TraceEntry,
   type TimeRange,
 } from "@/modules/sessions/getSessions";
-import SelfImprovementCard from "./partials/SelfImprovementCard";
+import RecordedProcessingCard from "./partials/RecordedProcessingCard";
 import { useSessionProcessing } from "./partials/useSessionProcessing";
 import type { SessionIdentity } from "@/modules/sessions/sessionOperations";
 import { parseServerIso, formatDate, formatRelativeTime, durationSeconds, formatDuration } from "./partials/format";
@@ -86,8 +86,6 @@ function asQA(raw: Record<string, unknown>): QAItem {
   };
 }
 
-// Visual tokens per source. Recall keeps the existing purple "question" look; remember
-// uses the existing green transcript styling.
 const SOURCE_META = {
   recall: {
     label: "Recall",
@@ -258,7 +256,7 @@ function Transcript({ qas, traces }: { qas: Record<string, unknown>[]; traces: T
   }, [items, query]);
 
   const timeline = [...filtered].sort((a, b) =>
-    (b.time ? parseServerIso(b.time).getTime() : 0) - (a.time ? parseServerIso(a.time).getTime() : 0));
+    (b.time ? (parseServerIso(b.time).getTime() || 0) : 0) - (a.time ? (parseServerIso(a.time).getTime() || 0) : 0));
 
   return (
     <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", gap: 12, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
@@ -386,7 +384,7 @@ function SessionDetailPanel({ detail }: { detail: SessionDetail }) {
         <StatCard label="Observations" value={String(detail.msg_count ?? 0)} />
         <StatCard label="Tool calls" value={String(detail.tool_calls ?? 0)} />
         <StatCard label="Tokens" value={tokens === null ? "Not recorded" : tokens.toLocaleString()} />
-        <StatCard label="Cost" value={detail.cost_usd === null ? "Not recorded" : `$${detail.cost_usd}`} />
+        <StatCard label="Cost" value={detail.cost_usd === null ? "Not recorded" : `$${detail.cost_usd.toFixed(4)}`} />
         <StatCard label="Duration" value={formatDuration(dur)} />
       </div>
 
@@ -405,8 +403,6 @@ function SessionDetailPanel({ detail }: { detail: SessionDetail }) {
         </div>
       </div>
 
-      {/* Conversation transcript — what the agent actually asked and stored,
-          with improve (graph enrichment) entries interleaved */}
       <p style={{ fontSize: 12 }}>Transcript and tools show only the latest 20 Q&amp;As and latest 20 traces, not full history. Cache failures can return empty content without a degradation flag. Counts may cover more entries.</p>
       <Transcript qas={detail.qas ?? []} traces={detail.traces ?? []} />
 
@@ -422,9 +418,9 @@ function SelectedSession({ identity, refreshNonce }: { identity: SessionIdentity
   return <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
     <p style={{ fontSize: 12, overflowWrap: "anywhere" }}>Session: {identity.sessionId} · Owner: {identity.userId}</p>
     {state.detailLoading && <div role="status">Loading session…</div>}
-    {state.detailError && <div role="alert">{state.detailError} <button onClick={state.retryDetail}>Retry detail</button></div>}
+    {state.detailError && <div role="alert">{state.detailError} <button onClick={state.retryDetail}>Retry detail</button> {state.detailErrorStatus === 401 && <a href="/local-login">Sign in</a>}</div>}
     {state.detailStale && <p role="status">Stale session detail retained after a read failure.</p>}
-    <SelfImprovementCard identity={identity} history={state.history} />
+    <RecordedProcessingCard identity={identity} history={state.history} />
     {state.detail && <SessionDetailPanel detail={state.detail} />}
   </div>;
 }

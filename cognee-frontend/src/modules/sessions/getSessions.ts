@@ -45,12 +45,6 @@ export const LLM_COST_PER_1M_TOKENS = envNumber(
   "NEXT_PUBLIC_LLM_COST_PER_1M_TOKENS",
 );
 
-// Estimated USD cost for a session from its token usage. Both in/out bill at the
-// same flat rate, so total tokens is enough.
-export function estimateCostUsd(tokensIn: number, tokensOut: number): number {
-  return ((tokensIn + tokensOut) / 1_000_000) * LLM_COST_PER_1M_TOKENS;
-}
-
 // ── "Money saved" baseline ──
 // What the same work would cost with no cognee in the loop: without recall the
 // agent re-sends the context it can't remember, burning an estimated 7× the
@@ -338,9 +332,6 @@ export interface PipelineRun {
   operation_name: string | null;
   origin: string | null;
   outcome: string | null;
-  // The exception class name on a failed row, e.g. "DatasetNotFoundError".
-  // This is the ONLY error field `/v1/activity/pipeline-runs` returns; there
-  // is no `error` key in the native response.
   error_class: string | null;
   // Independently nullable: null means "not measured", 0 means "measured
   // zero" — never conflate the two when summing or displaying these. Rows
@@ -664,7 +655,6 @@ export interface TraceEntry {
   time?: string;
 }
 
-// Native detail returns the stored status; only list rows add effective_status.
 export interface SessionDetail extends Omit<SessionRow, "effective_status"> {
   label: string | null;
   msg_count: number;

@@ -1,11 +1,13 @@
 import handleServerErrors from "@/utils/handleServerErrors";
 import { HttpError, toHttpError } from "@/services/http/errors";
+import type { CogneeFetchInit } from "./types";
 
 import { getLocalApiUrl } from "@/modules/users/getLocalApiUrl";
 
 let apiKey: string | null = process.env.NEXT_PUBLIC_COGWIT_API_KEY || null;
 
-export default async function localFetch(url: URL | RequestInfo, options: RequestInit = {}): Promise<Response> {
+export default async function localFetch(url: URL | RequestInfo, options: CogneeFetchInit = {}): Promise<Response> {
+  const { authErrors, ...requestOptions } = options;
   const localApiUrl = getLocalApiUrl();
   const authHeaders: Record<string, string> = {};
   if (apiKey) {
@@ -29,9 +31,9 @@ export default async function localFetch(url: URL | RequestInfo, options: Reques
   return global.fetch(
     fullUrl,
     {
-      ...options,
+      ...requestOptions,
       headers: {
-        ...options.headers,
+        ...requestOptions.headers,
         ...authHeaders,
       } as HeadersInit,
       credentials: "include",
@@ -40,9 +42,7 @@ export default async function localFetch(url: URL | RequestInfo, options: Reques
     .then((response) => {
       console.log(`[LOCAL-API] ← ${method} ${fullUrl} — ${response.status} ${response.statusText}`);
       // Keep the HTTP status so callers can handle conflicts, rate limits, etc.
-      // Recording views handle 401/403 themselves; other reads retain the local sign-in redirect.
-      const recordingRead = /^\/v1\/(activity\/pipeline-runs|sessions\/)/.test(urlStr);
-      if (!response.ok && (recordingRead || (response.status !== 401 && response.status !== 403))) {
+      if (!response.ok && (authErrors === "throw" || (response.status !== 401 && response.status !== 403))) {
         return toHttpError(response);
       }
       return handleServerErrors(response, null, false);
