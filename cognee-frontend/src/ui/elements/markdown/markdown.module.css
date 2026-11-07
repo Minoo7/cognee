@@ -1,0 +1,12 @@
+.content { color-scheme: dark; accent-color: #c9aaff; min-width: 0; max-width: 100%; color: #edecea; font-size: 14px; line-height: 24px; overflow-wrap: anywhere; }
+.content :global(.enrm-text) { min-width: 0; max-width: 100%; }
+.content :global(.enrm-text) > :first-child { margin-top: 0 !important; }
+.content pre { min-width: 0; max-width: 100%; white-space: pre; overflow-wrap: normal; }
+.content th, .content td { min-width: 110px; overflow-wrap: normal; word-break: normal; }
+.content a:focus-visible { outline: 2px solid #c9aaff; outline-offset: 3px; }
+.notice { margin: 0 0 12px; color: #c8bfd4; font-size: 12px; line-height: 20px; }
+.content ul { list-style-type: disc; }
+.content ul ul { list-style-type: circle; }
+.content ol { list-style-type: decimal; }
+
+.content ul:has(> li > span > input[type="checkbox"]) { padding-inline-start: 26px !important; }

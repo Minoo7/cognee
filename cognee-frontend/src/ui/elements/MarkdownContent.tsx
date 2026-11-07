@@ -1,79 +1,60 @@
 "use client";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { decideMarkdown, isSafeMarkdownLink } from "./markdown/decision";
+import LegacyMarkdown from "./markdown/LegacyMarkdown";
+import styles from "./markdown/markdown.module.css";
 
-export default function MarkdownContent({ text }: { text: string }) {
-  return (
-    <div style={{ fontSize: 14, color: "#EDECEA", lineHeight: "22px", wordBreak: "break-word", minWidth: 0 }}>
-      <ReactMarkdown
-        components={{
-          img: ({ alt }) => <span>{alt || "Image"} (image disabled)</span>,
-          p: ({ children }) => (
-            <p style={{ margin: "0 0 10px", fontSize: 14, lineHeight: "22px", color: "#EDECEA" }}>{children}</p>
-          ),
-          h1: ({ children }) => (
-            <h1 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 8px", color: "#EDECEA", lineHeight: "26px" }}>{children}</h1>
-          ),
-          h2: ({ children }) => (
-            <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px", color: "#EDECEA", lineHeight: "24px" }}>{children}</h2>
-          ),
-          h3: ({ children }) => (
-            <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 6px", color: "#EDECEA" }}>{children}</h3>
-          ),
-          strong: ({ children }) => (
-            <strong style={{ fontWeight: 700, color: "#EDECEA" }}>{children}</strong>
-          ),
-          em: ({ children }) => (
-            <em style={{ fontStyle: "italic" }}>{children}</em>
-          ),
-          code: ({ className, children }) => {
-            const isBlock = Boolean(className?.startsWith("language-"));
-            if (isBlock) {
-              return (
-                <code style={{
-                  display: "block", background: "rgba(0,0,0,0.4)", color: "#CDD6F4",
-                  padding: "12px 16px", fontSize: 12,
-                  fontFamily: 'ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", monospace',
-                  overflowX: "auto", lineHeight: "20px", whiteSpace: "pre",
-                }}>
-                  {children}
-                </code>
-              );
-            }
-            return (
-              <code style={{
-                background: "rgba(255,255,255,0.1)", borderRadius: 3, padding: "1px 5px",
-                fontSize: 12, fontFamily: 'ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", monospace', color: "#CBA6F7",
-              }}>
-                {children}
-              </code>
-            );
-          },
-          pre: ({ children }) => (
-            <pre style={{ margin: "0 0 10px", borderRadius: 8, overflow: "auto", background: "rgba(0,0,0,0.4)" }}>{children}</pre>
-          ),
-          ul: ({ children }) => (
-            <ul style={{ margin: "0 0 10px", paddingLeft: 20, lineHeight: "22px" }}>{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol style={{ margin: "0 0 10px", paddingLeft: 20, lineHeight: "22px" }}>{children}</ol>
-          ),
-          li: ({ children }) => (
-            <li style={{ fontSize: 14, color: "#EDECEA", marginBottom: 4 }}>{children}</li>
-          ),
-          blockquote: ({ children }) => (
-            <blockquote style={{ borderLeft: "3px solid rgba(188,155,255,0.35)", paddingLeft: 12, margin: "0 0 10px", color: "rgba(237,236,234,0.6)" }}>{children}</blockquote>
-          ),
-          hr: () => (
-            <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", margin: "12px 0" }} />
-          ),
-          a: ({ href, children }) => (
-            <a href={href || undefined} target="_blank" rel="noopener noreferrer" style={{ color: "#BC9BFF", textDecoration: "underline" }}>{children}</a>
-          ),
-        }}
-      >
-        {text}
-      </ReactMarkdown>
-    </div>
-  );
+const EnrichedView = dynamic(() => import("./markdown/EnrichedView"), { ssr: false });
+type RenderState = { kind: "loading" } | { kind: "ready" } | { kind: "failed"; reason: string };
+
+function Compatible({ text, reason, literal = false }: { text: string; reason: string; literal?: boolean }) {
+  return <div data-markdown-renderer="compatible"><p className={styles.notice}>Compatibility view · {reason}</p><LegacyMarkdown text={text} literal={literal} /></div>;
 }
 
+export default function MarkdownContent({ text }: { text: string }) {
+  const decision = useMemo(() => decideMarkdown(text), [text]);
+  if (decision.kind === "empty") return null;
+  if (decision.kind === "compatible") return <Compatible text={text} reason={`preserving unsupported content (${decision.reasons.join(", ")})`} literal={decision.reasons.includes("footnote")} />;
+  return <ErrorBoundary key={text} fallback={<Compatible text={text} reason="Enriched could not load" />}><RenderSession key={text} text={text} /></ErrorBoundary>;
+}
+
+function RenderSession({ text }: { text: string }) {
+  const [state, setState] = useState<RenderState>({ kind: "loading" });
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = root.current;
+    if (!element) return;
+    let active = true;
+    const timer = window.setTimeout(() => { if (active) setState({ kind: "failed", reason: "Enriched timed out" }); }, 8000);
+    const inspect = () => {
+      if (!active) return;
+      const rendered = element.querySelector(".enrm-text");
+      if (!rendered) return;
+      for (const link of rendered.querySelectorAll("a[href]")) {
+        if (!isSafeMarkdownLink(link.getAttribute("href") || "")) link.removeAttribute("href");
+      }
+      const rawFallback = rendered.querySelector(":scope > pre:not(:has(code))");
+      if (rawFallback || rendered.querySelector("img,video,audio,source,iframe,object,embed,picture")) {
+        window.clearTimeout(timer);
+        setState({ kind: "failed", reason: "Enriched could not parse this document" });
+      } else if (rendered.children.length === 0 || rendered.querySelector("p,h1,h2,h3,h4,h5,h6,ul,ol,table,pre > code,hr,blockquote")) {
+        window.clearTimeout(timer);
+        setState({ kind: "ready" });
+      }
+    };
+    const observer = new MutationObserver(inspect);
+    observer.observe(element, { childList: true, subtree: true });
+    inspect();
+    return () => { active = false; observer.disconnect(); window.clearTimeout(timer); };
+  }, []);
+  if (state.kind === "failed") return <Compatible text={text} reason={state.reason} />;
+  return <div className={styles.content} data-markdown-renderer="enriched" data-markdown-state={state.kind}>
+    {state.kind === "loading" && <p role="status" className={styles.notice}>Formatting Markdown…</p>}
+    <div ref={root} onClickCapture={event => {
+      const link = event.target instanceof Element ? event.target.closest("a") : null;
+      if (link && !isSafeMarkdownLink(link.getAttribute("href") || "")) { event.preventDefault(); event.stopPropagation(); }
+    }}><EnrichedView text={text} /></div>
+  </div>;
+}
