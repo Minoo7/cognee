@@ -1,0 +1,29 @@
+--- a/src/server.py
++++ b/src/server.py
+@@ -163,7 +163,7 @@
+ 
+     allowed_hosts = localhost_hosts + extra_hosts
+     # Derive origins from extra hosts so users don't need to set both.
+-    allowed_origins = localhost_origins + [f"http://{h}" for h in extra_hosts]
++    allowed_origins = localhost_origins + [f"https://{h}" for h in localhost_hosts] + [f"{scheme}://{h}" for h in extra_hosts for scheme in ("http", "https")]
+ 
+     if host not in ("127.0.0.1", "localhost", "::1") or extra_hosts:
+         logger.info(
+@@ -333,14 +333,9 @@
+     """
+     app = _build_http_app(transport, host, path)
+ 
+-    config = uvicorn.Config(
+-        app,
+-        host=host,
+-        port=port,
+-        log_level=log_level.lower(),
+-    )
+-    server = uvicorn.Server(config)
+-    await server.serve()
++    from native_tls import listeners_from_env, serve
++
++    await serve(app, listeners_from_env(host, port), log_level.lower())
+ 
+ 
+ @mcp.custom_route("/health", methods=["GET"])

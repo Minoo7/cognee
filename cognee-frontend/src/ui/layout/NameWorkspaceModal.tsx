@@ -14,10 +14,11 @@ interface NameWorkspaceModalProps {
   error: string | null;
   onSubmit: () => void;
   onClose: () => void;
+  mode: "local" | "paid";
 }
 
 export default function NameWorkspaceModal({
-  name, setName, submitting, isFree, error, onSubmit, onClose,
+  name, setName, submitting, isFree, error, onSubmit, onClose, mode,
 }: NameWorkspaceModalProps): React.JSX.Element {
   const valid = name.trim().length >= 2 && name.trim().length <= 50;
   return (
@@ -46,15 +47,17 @@ export default function NameWorkspaceModal({
             Name your workspace. You can switch between workspaces from the top bar.
           </p>
         </div>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 14, padding: "10px 12px", borderRadius: 8, background: "rgba(188,155,255,0.1)", border: "1px solid rgba(188,155,255,0.25)" }}>
-          <span style={{ fontSize: 12.5, color: "rgba(237,236,234,0.8)", lineHeight: 1.45 }}>
-            {isFree ? (
-              <>Your first workspace is <strong style={{ color: "#EDECEA" }}>free</strong>. Workspaces you were invited to don&apos;t count, so this one costs nothing.</>
-            ) : (
-              <>A new workspace costs <strong style={{ color: "#EDECEA" }}>{WORKSPACE_PRICE_LABEL}</strong>. You&apos;ll be taken to Stripe to confirm payment — the workspace is created once payment succeeds.</>
-            )}
-          </span>
-        </div>
+        {mode === "paid" && (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 14, padding: "10px 12px", borderRadius: 8, background: "rgba(188,155,255,0.1)", border: "1px solid rgba(188,155,255,0.25)" }}>
+            <span style={{ fontSize: 12.5, color: "rgba(237,236,234,0.8)", lineHeight: 1.45 }}>
+              {isFree ? (
+                <>Your first workspace is <strong style={{ color: "#EDECEA" }}>free</strong>. Workspaces you were invited to don&apos;t count, so this one costs nothing.</>
+              ) : (
+                <>A new workspace costs <strong style={{ color: "#EDECEA" }}>{WORKSPACE_PRICE_LABEL}</strong>. You&apos;ll be taken to Stripe to confirm payment — the workspace is created once payment succeeds.</>
+              )}
+            </span>
+          </div>
+        )}
         <input
           type="text"
           value={name}
@@ -99,8 +102,8 @@ export default function NameWorkspaceModal({
             style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: tokens.purple, color: "#fff", fontSize: 13, fontWeight: 500, cursor: !valid || submitting ? "default" : "pointer", opacity: !valid || submitting ? 0.6 : 1 }}
           >
             {submitting
-              ? (isFree ? "Creating..." : "Redirecting...")
-              : (isFree ? "Create workspace" : `Continue to payment · ${WORKSPACE_PRICE_LABEL}`)}
+              ? ((mode === "local" || isFree) ? "Creating..." : "Redirecting...")
+              : ((mode === "local" || isFree) ? "Create workspace" : `Continue to payment · ${WORKSPACE_PRICE_LABEL}`)}
           </button>
         </div>
       </form>

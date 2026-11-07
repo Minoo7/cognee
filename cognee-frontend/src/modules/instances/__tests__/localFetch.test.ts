@@ -1,6 +1,7 @@
 import fetchMock from "jest-fetch-mock";
 import localFetch from "../localFetch";
 import { HttpError } from "@/services/http/errors";
+import { RUNTIME_CONFIG_ELEMENT_ID } from "@/modules/config/runtimeConfig";
 
 describe("localFetch errors", () => {
   beforeEach(() => {
@@ -8,7 +9,10 @@ describe("localFetch errors", () => {
     jest.spyOn(console, "log").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => {
+    jest.restoreAllMocks();
+    document.getElementById(RUNTIME_CONFIG_ELEMENT_ID)?.remove();
+  });
 
   it("preserves cancellation without reporting a network failure", async () => {
     const error = new DOMException("Aborted", "AbortError");
@@ -18,8 +22,14 @@ describe("localFetch errors", () => {
   });
 
   it.each([401, 403])("preserves native recording read denial %i without redirect", async (status) => {
+    const config = document.createElement("script");
+    config.id = RUNTIME_CONFIG_ELEMENT_ID;
+    config.type = "application/json";
+    config.textContent = JSON.stringify({ backendUrl: "http://runtime-backend:8123" });
+    document.head.appendChild(config);
     fetchMock.mockResponseOnce(JSON.stringify({ detail: "denied" }), { status });
     await expect(localFetch("/v1/activity/pipeline-runs?limit=50")).rejects.toMatchObject({ status });
+    expect(fetchMock).toHaveBeenLastCalledWith("http://runtime-backend:8123/api/v1/activity/pipeline-runs?limit=50", expect.objectContaining({ credentials: "include" }));
     fetchMock.mockResponseOnce(JSON.stringify({ detail: "denied" }), { status });
     await expect(localFetch("/v1/sessions/A")).rejects.toMatchObject({ status });
   });

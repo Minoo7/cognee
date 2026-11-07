@@ -1,0 +1,7 @@
+FROM cognee-native-base-mcp:231f3f01d3f6
+COPY src/native_tls.py /opt/native-tls/native_tls.py
+COPY src/patch_mcp.py /opt/native-tls/patch_mcp.py
+USER root
+RUN python /opt/native-tls/patch_mcp.py
+USER 1000:1000
+ENV PYTHONPATH=/opt/native-tls:/app

@@ -1,0 +1,64 @@
+services:
+  cognee:
+    image: ${NATIVE_API_IMAGE:?Set verified native API image ID}
+    build: !reset null
+    entrypoint: ["/opt/native-tls/api-entrypoint.sh"]
+    restart: always
+    stop_grace_period: 330s
+    labels:
+      ai.planasolutions.native-tls: enabled
+    environment:
+      TLS_PORT: "8443"
+      TLS_DIRECTORY: /tls/current
+      DRAIN_SECONDS: "300"
+      PYTHONPATH: /opt/native-tls:/app
+    networks:
+      cognee-network:
+        aliases: ["cognee.planasolutions.ai"]
+    volumes:
+      - /etc/cognee-native-tls:/tls:ro
+    ports:
+      - "100.97.84.7:8443:8443"
+  cognee-mcp:
+    image: ${NATIVE_MCP_IMAGE:?Set verified native MCP image ID}
+    build: !reset null
+    restart: always
+    stop_grace_period: 330s
+    labels:
+      ai.planasolutions.native-tls: enabled
+    environment:
+      TLS_PORT: "8444"
+      TLS_DIRECTORY: /tls/current
+      PYTHONPATH: /opt/native-tls:/app
+    volumes:
+      - /etc/cognee-native-tls:/tls:ro
+    ports:
+      - "100.97.84.7:8444:8444"
+  frontend:
+    image: ${NATIVE_UI_IMAGE:?Set verified native UI image ID}
+    build: !reset null
+    entrypoint: ["/bin/sh", "/opt/native-tls/ui-entrypoint.sh"]
+    command: ["node", "/app/server.cjs"]
+    restart: always
+    stop_grace_period: 330s
+    group_add: ["1000"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/runtime-config').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    labels:
+      ai.planasolutions.native-tls: enabled
+      tsdproxy.dnstarget: "100.97.84.7"
+      tsdproxy.enable: "false"
+    environment:
+      TLS_PORT: "3443"
+      TLS_DIRECTORY: /tls/current
+      NEXT_MANUAL_SIG_HANDLE: "true"
+      COGNEE_BACKEND_URL: https://cognee.planasolutions.ai:8443
+    volumes:
+      - /etc/cognee-native-tls:/tls:ro
+      - /home/ubuntu/cognee-native-tls/src/ui-entrypoint.sh:/opt/native-tls/ui-entrypoint.sh:ro
+    ports:
+      - "100.97.84.7:443:3443"

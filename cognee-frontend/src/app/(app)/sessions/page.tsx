@@ -513,7 +513,7 @@ function SessionsContent() {
                 <SkeletonBar width={50} />
               </>
             ) : stats ? (
-              <span>{` · ${stats.sessions} sessions · ${Math.round(stats.success_rate * 100)}% success`}</span>
+              <span>{` · ${stats.sessions} sessions`}</span>
             ) : null}
           </p>
         </div>

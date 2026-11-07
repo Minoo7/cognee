@@ -1,0 +1,23 @@
+--- a/entrypoint.sh
++++ b/entrypoint.sh
+@@ -45,19 +45,4 @@
+ PYTHON
+ echo "Database migrations done."
+ 
+-echo "Starting server..."
+-
+-# Add startup delay to ensure DB is ready
+-sleep 2
+-
+-# Modified Gunicorn startup with error handling
+-if [ "$ENV" = "dev" ] || [ "$ENV" = "local" ]; then
+-    if [ "$DEBUG" = "true" ]; then
+-        echo "Waiting for the debugger to attach..."
+-        exec debugpy --wait-for-client --listen $BIND_ADDRESS:$DEBUG_PORT -m gunicorn -w 1 -k uvicorn.workers.UvicornWorker -t 30000 --bind=$BIND_ADDRESS:$HTTP_PORT --log-level debug --reload --access-logfile - --error-logfile - cognee.api.client:app
+-    else
+-        exec gunicorn -w 1 -k uvicorn.workers.UvicornWorker -t 30000 --bind=$BIND_ADDRESS:$HTTP_PORT --log-level debug --reload --access-logfile - --error-logfile - cognee.api.client:app
+-    fi
+-else
+-    exec gunicorn -w 1 -k uvicorn.workers.UvicornWorker -t 30000 --bind=$BIND_ADDRESS:$HTTP_PORT --log-level error --access-logfile - --error-logfile - cognee.api.client:app
+-fi
++exec python /opt/native-tls/native_tls.py

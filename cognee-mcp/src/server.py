@@ -164,8 +164,10 @@ def _transport_security_kwargs(host: str) -> dict:
     allowed_hosts = localhost_hosts + extra_hosts
     # Derive origins from extra hosts so users don't need to set both.
     allowed_origins = localhost_origins + [f"http://{h}" for h in extra_hosts]
+    if os.environ.get("TLS_PORT"):
+        allowed_origins += [f"https://{h}" for h in localhost_hosts + extra_hosts]
 
-    if host not in ("127.0.0.1", "localhost", "::1") or extra_hosts:
+    if host not in ("127.0.0.1", "localhost", "::1") or extra_hosts or os.environ.get("TLS_PORT"):
         logger.info(
             "MCP transport security: allowed_hosts=%s",
             allowed_hosts,
@@ -332,6 +334,17 @@ async def _serve_with_cors(
     seam for the CORS middleware, so we build the ASGI app ourselves.
     """
     app = _build_http_app(transport, host, path)
+
+    if os.environ.get("TLS_PORT"):
+        from cognee.api.native_tls import listeners_from_env, serve
+
+        await serve(
+            app,
+            listeners_from_env(host, port),
+            log_level.lower(),
+            grace=int(os.environ.get("DRAIN_SECONDS", "300")),
+        )
+        return
 
     config = uvicorn.Config(
         app,

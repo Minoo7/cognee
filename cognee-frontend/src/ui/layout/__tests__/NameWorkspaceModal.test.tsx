@@ -7,6 +7,7 @@ function renderModal(overrides: Partial<React.ComponentProps<typeof NameWorkspac
     setName: jest.fn(),
     submitting: false,
     isFree: false,
+    mode: "paid" as const,
     error: null,
     onSubmit: jest.fn(),
     onClose: jest.fn(),
@@ -100,4 +101,10 @@ describe("NameWorkspaceModal — name validation", () => {
     renderModal({ error: "Could not start checkout. Please try again." });
     expect(screen.getByText("Could not start checkout. Please try again.")).toBeInTheDocument();
   });
+});
+
+it("creates a local workspace without payment copy", () => {
+  renderModal({ mode: "local" });
+  expect(screen.getByRole("button", { name: "Create workspace" })).toBeInTheDocument();
+  expect(screen.queryByText(/Stripe|costs|first workspace is/i)).not.toBeInTheDocument();
 });

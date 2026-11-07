@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { Flex, Text, Title, TextInput, PasswordInput, Button } from "@mantine/core";
 
-const localApiUrl = process.env.NEXT_PUBLIC_LOCAL_API_URL || "http://localhost:8000";
-
-const DEFAULT_EMAIL = "default_user@example.com";
-const DEFAULT_PASSWORD = "default_password";
+import { getLocalApiUrl } from "@/modules/users/getLocalApiUrl";
 
 const INPUT_CLASSNAMES = {
   input: "!h-[44px] !bg-white/[0.06] !border-white/15 !rounded-xl !text-[#EDECEA] placeholder:!text-white/35 focus:!border-[#BC9BFF] !transition-colors",
@@ -16,8 +13,9 @@ const INPUT_CLASSNAMES = {
 };
 
 export default function LocalSignInForm() {
-  const [email, setEmail] = useState(DEFAULT_EMAIL);
-  const [password, setPassword] = useState(DEFAULT_PASSWORD);
+  const localApiUrl = getLocalApiUrl();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -114,10 +112,6 @@ export default function LocalSignInForm() {
           autoComplete="current-password"
           classNames={INPUT_CLASSNAMES}
         />
-
-        <Text size="xs" className="!text-white/55 !font-light" mt={-4}>
-          Default credentials are pre-filled for local development
-        </Text>
 
         <Button
           type="submit"

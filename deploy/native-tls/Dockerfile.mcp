@@ -1,0 +1,7 @@
+# Build the base from this checkout's cognee-mcp/Dockerfile first.
+ARG BASE_IMAGE=cognee-selfhost-mcp:1.6.7
+FROM ${BASE_IMAGE}
+# Stock v1.6.7 MCP locks Cognee 1.6.6, which lacks this new adapter. Install
+# this one source module explicitly; do not relock or replace the core SDK.
+COPY --chown=cognee:cognee cognee/api/native_tls.py /app/.venv/lib/python3.12/site-packages/cognee/api/native_tls.py
+ENV TLS_PORT=8444 TLS_DIRECTORY=/tls/current

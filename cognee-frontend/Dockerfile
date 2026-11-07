@@ -54,6 +54,32 @@ ENV NEXT_TELEMETRY_DISABLED=1
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
+# Native TLS uses Next's custom-server API, which needs the full production
+# dependencies. Next's standalone tracer deliberately omits custom servers.
+FROM deps AS native-deps
+RUN npm prune --omit=dev --ignore-scripts
+
+FROM builder AS native-build
+RUN rm -rf .next/standalone .next/cache
+
+FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS native-tls
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NEXT_MANUAL_SIG_HANDLE=true
+ENV PORT=3000 TLS_PORT=3443 BIND_ADDRESS=0.0.0.0 COGNEE_BACKEND_URL=""
+RUN addgroup -g 1001 -S nodejs \
+ && adduser -u 1001 -S nextjs -G nodejs
+COPY --from=native-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=native-build --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY server.cjs ./server.cjs
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+USER nextjs
+EXPOSE 3000 3443
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/runtime-config').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["node", "server.cjs"]
+
 # -------------------------------------------------------------- runner ------
 FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS runner
 WORKDIR /app

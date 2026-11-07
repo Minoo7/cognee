@@ -9,7 +9,9 @@ jest.mock("@/modules/tenant/TenantProvider", () => ({ useCogniInstance: () => ({
 jest.mock("@/modules/analytics", () => ({ TrackPageView: () => null }));
 jest.mock("@/modules/sessions/getSessions", () => ({
   ...jest.requireActual("@/modules/sessions/getSessions"),
-  listSessions: async () => ({ sessions }), getSessionStats: async () => null,
+  listSessions: async () => ({ sessions }),
+  // Native stats report success_rate=1 when no sessions have a decided status.
+  getSessionStats: async () => ({ sessions: 2, completed: 0, failed: 0, abandoned: 0, running: 2, success_rate: 1 }),
 }));
 beforeEach(() => {
   sessions.splice(0, sessions.length, detail(), detail({ session_id: "B" }));
@@ -17,6 +19,12 @@ beforeEach(() => {
   fetch.mockImplementation((url: string) => Promise.resolve(new Response(JSON.stringify(
     url.startsWith("/v1/sessions/") ? detail({ session_id: decodeURIComponent(url.split("/").pop()!) }) : [run({ operation_name: "processed-A" })]
   ))));
+});
+
+it("does not label undecided native sessions as successful processing", async () => {
+  render(<SessionsPage />);
+  expect(await screen.findByText("· 2 sessions")).toBeInTheDocument();
+  expect(screen.queryByText(/% success/)).not.toBeInTheDocument();
 });
 it("keeps processing separate from effective status and the transcript; B cannot inherit A's dataset processing", async () => {
   render(<SessionsPage />);
