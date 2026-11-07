@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useCogniInstance } from "@/modules/tenant/TenantProvider";
 import { TrackPageView } from "@/modules/analytics";
 import SkeletonBar from "@/ui/elements/SkeletonBar";
@@ -440,8 +440,16 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<SessionDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailResult, setDetailResult] = useState<{ instance: typeof cogniInstance; id: string; value: SessionDetail | null } | null>(null);
+  const detail = detailResult?.instance === cogniInstance && detailResult?.id === selectedId ? detailResult.value : null;
+  const detailLoading = !!selectedId && !(detailResult?.instance === cogniInstance && detailResult?.id === selectedId);
+  const queryInstance = useRef<typeof cogniInstance>(null);
+  useEffect(() => {
+    if (!cogniInstance || queryInstance.current === cogniInstance) return;
+    queryInstance.current = cogniInstance;
+    const id = new URLSearchParams(window.location.search).get("session");
+    setSelectedId(id && id.length <= 512 && !/[\s\x00-\x1f]/.test(id) ? id : null);
+  }, [cogniInstance]);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
@@ -468,23 +476,21 @@ export default function SessionsPage() {
       listSessions(cogniInstance, { range, limit: 100 }).then((page) => setSessions(page.sessions)),
       getSessionStats(cogniInstance, range).then(setStats),
     ];
-    if (selectedId) {
-      tasks.push(getSessionDetail(cogniInstance, selectedId).then(setDetail));
-    }
+
     setRefreshNonce((n) => n + 1);
     await Promise.all(tasks);
     setRefreshing(false);
-  }, [cogniInstance, range, selectedId]);
+  }, [cogniInstance, range]);
 
-  const selectSession = useCallback(async (id: string) => {
-    if (!cogniInstance) return;
-    setSelectedId(id);
-    setDetail(null);
-    setDetailLoading(true);
-    const d = await getSessionDetail(cogniInstance, id);
-    setDetail(d);
-    setDetailLoading(false);
-  }, [cogniInstance]);
+  useEffect(() => {
+    if (!cogniInstance || !selectedId) return;
+    let live = true;
+    getSessionDetail(cogniInstance, selectedId).then(value => {
+      if (live) setDetailResult({ instance: cogniInstance, id: selectedId, value });
+    }).catch(() => { if (live) setDetailResult({ instance: cogniInstance, id: selectedId, value: null }); });
+    return () => { live = false; };
+  }, [cogniInstance, selectedId, refreshNonce]);
+  const selectSession = useCallback((id: string) => setSelectedId(id), []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -535,7 +541,7 @@ export default function SessionsPage() {
         </div>
       </div>
 
-      {loading && sessions.length === 0 ? (
+      {loading && sessions.length === 0 && !selectedId ? (
         <div style={{ flex: 1, display: "flex", overflow: "hidden", marginInline: 32, marginBottom: 32, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, background: "rgba(0,0,0,0.82)", backdropFilter: "blur(20px)" }}>
           <div style={{ width: 360, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.1)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <div style={{ height: 44, padding: "0 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", flexShrink: 0, display: "flex", alignItems: "center" }}>
@@ -562,7 +568,7 @@ export default function SessionsPage() {
             </div>
           </div>
         </div>
-      ) : sessions.length === 0 ? (
+      ) : sessions.length === 0 && !selectedId ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingInline: 32, paddingBottom: 32 }}>
           <div style={{ flex: 1, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 48 }}>
             <div style={{ width: 56, height: 56, background: "rgba(188,155,255,0.20)", border: "1px solid rgba(188,155,255,0.35)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>

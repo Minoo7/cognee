@@ -4,7 +4,8 @@ import type { ReactElement } from "react";
 import FileIcon, { getExtMeta } from "@/ui/elements/FileIcon";
 import TrashIcon from "@/ui/elements/TrashIcon";
 import { formatDate, formatFileSize } from "@/utils/fileFormat";
-import isMemoryBlobName from "@/modules/datasets/isMemoryBlobName";
+import styles from "@/modules/datasets/memoryReader.module.css";
+import type { MemoryDocuments } from "@/modules/datasets/useMemoryDocuments";
 import { capRows, MAX_RENDERED_ROWS } from "@/modules/datasets/maxRenderedRows";
 import ProcessingBadge from "../../partials/ProcessingBadge";
 
@@ -25,8 +26,9 @@ function getTypeName(name: string, ext?: string): string {
 
 export default function FilesTable({
   files,
-  memorySessionIds,
+  memory,
   search,
+  filtering = false,
   loadError,
   onDelete,
   onUploadClick,
@@ -34,8 +36,9 @@ export default function FilesTable({
   deletingId,
 }: {
   files: FileRow[];
-  memorySessionIds: Record<string, string | null>;
+  memory?: MemoryDocuments;
   search: string;
+  filtering?: boolean;
   loadError: boolean;
   onDelete: (id: string) => void;
   onUploadClick: () => void;
@@ -55,8 +58,8 @@ export default function FilesTable({
   if (files.length === 0) {
     return (
       <div style={{ flex: 1, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 48 }}>
-        <span style={{ fontSize: 15, color: "rgba(237,236,234,0.35)" }}>{search ? "No files match your search" : "No files yet"}</span>
-        <button onClick={onUploadClick} className="cursor-pointer hover:bg-[#5A0ED6]" style={{ background: "#6510F4", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 500 }}>Upload files</button>
+        <span style={{ fontSize: 15, color: "rgba(237,236,234,0.35)" }}>{search || filtering ? "No files match your search or filters" : "No files yet"}</span>
+        {!search && !filtering && <button onClick={onUploadClick} className="cursor-pointer hover:bg-[#5A0ED6]" style={{ background: "#6510F4", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 500 }}>Upload files</button>}
       </div>
     );
   }
@@ -75,14 +78,14 @@ export default function FilesTable({
         <span style={{ width: 40, flexShrink: 0 }} />
       </div>
       {visible.map((file, i) => {
-        const isMemory = isMemoryBlobName(file.name);
-        const memorySession = memorySessionIds[file.id];
+        const summary = memory?.summary(file);
+        const isMemory = !!summary;
         const meta = isMemory
           ? { fill: "rgba(188,155,255,0.20)", stroke: "#BC9BFF", text: "#BC9BFF", label: "MEM" }
           : getExtMeta(file.name, file.extension);
-        const typeName = isMemory ? "Memory" : getTypeName(file.name, file.extension);
+        const typeName = getTypeName(file.name, file.extension);
         const displayName = isMemory
-          ? (memorySession ? `Memory · ${memorySession}` : "Memory")
+          ? summary?.title
           : decodeURIComponent(file.name);
         return (
           <div
@@ -92,10 +95,10 @@ export default function FilesTable({
           >
             <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
               <FileIcon fill={meta.fill} stroke={meta.stroke} text={meta.text} label={meta.label} />
-              <span style={{ fontSize: 13, fontWeight: 500, color: "#EDECEA" }}>{displayName}</span>
+              {summary ? <button className={styles.opener} onClick={() => memory?.open(file.id)} title={summary.snippet}><span className={styles.rowTitle}>{displayName}</span>{summary.snippet && summary.snippet !== displayName && <small className={styles.snippet}>{summary.snippet}</small>}</button> : <span style={{ fontSize: 13, fontWeight: 500, color: "#EDECEA" }}>{displayName}</span>}
             </div>
             <span style={{ width: 85, flexShrink: 0 }}><ProcessingBadge completed={file.completed} /></span>
-            <span style={{ width: 100, fontSize: 13, color: "rgba(237,236,234,0.55)", flexShrink: 0 }}>{typeName}</span>
+            <span style={{ width: 100, fontSize: 13, color: "rgba(237,236,234,0.55)", flexShrink: 0 }}>{summary ? <><span className={styles.badge}>{summary.kind}</span><span className={styles.snippet}>{summary.agent}</span></> : typeName}</span>
             <span style={{ width: 80, fontSize: 13, color: "rgba(237,236,234,0.55)", flexShrink: 0 }}>{formatFileSize(file.size)}</span>
             <span style={{ width: 170, fontSize: 13, color: "rgba(237,236,234,0.35)", flexShrink: 0 }}>{formatDate(file.createdAt, true)}</span>
             <div style={{ width: 40, display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>

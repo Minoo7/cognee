@@ -16,7 +16,7 @@ test("DocumentList caps actual rows while keeping delete actions on the correct 
 });
 
 test("FilesTable caps actual rows and does not render a hidden file", () => {
-  const { container } = render(<FilesTable files={files} memorySessionIds={{}} search="" loadError={false}
+  const { container } = render(<FilesTable files={files}  search="" loadError={false}
     onDelete={jest.fn()} onUploadClick={jest.fn()} onRetry={jest.fn()} />);
   expect(container.querySelectorAll('button[title="Delete file"]')).toHaveLength(MAX_RENDERED_ROWS);
   expect(screen.queryByText(`file-${MAX_RENDERED_ROWS}.txt`)).not.toBeInTheDocument();
@@ -29,4 +29,12 @@ test("DocumentList displays raw API sizes and mapped sizes", () => {
     { id: "mapped", name: "mapped.txt", size: 2048 }]} onDelete={jest.fn()} />);
   expect(screen.getByText("1.0 KB")).toBeInTheDocument();
   expect(screen.getByText("2.0 KB")).toBeInTheDocument();
+});
+
+test("filtered empty detail results do not claim the dataset is empty", () => {
+  render(<FilesTable files={[]} search="" filtering loadError={false}
+    onDelete={jest.fn()} onUploadClick={jest.fn()} onRetry={jest.fn()} />);
+  expect(screen.getByText("No files match your search or filters")).toBeInTheDocument();
+  expect(screen.queryByText("No files yet")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Upload files" })).not.toBeInTheDocument();
 });

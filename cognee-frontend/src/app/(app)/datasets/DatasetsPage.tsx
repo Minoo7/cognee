@@ -23,6 +23,7 @@ export default function DatasetsPage() {
     selectedId,
     selectedDataset,
     selectedDocs,
+    memoryRevision,
     docsLoading,
     docsError,
     docsTotal,
@@ -166,7 +167,7 @@ export default function DatasetsPage() {
           />
 
           {/* Column 2 — Documents */}
-          <DocumentsPanel
+          <DocumentsPanel memoryRevision={memoryRevision}
             processingCounts={processingCounts}
             processingCountsError={processingCountsError}
             onRefreshProcessing={refreshProcessingCounts}

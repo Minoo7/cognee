@@ -30,7 +30,8 @@ import ProcessingSummary from "../partials/ProcessingSummary";
 import { useDatasetProcessing } from "@/modules/datasets/useDatasetProcessing";
 import { decodeFilename } from "@/utils/fileFormat";
 import mapInferredSchema from "@/modules/graphModels/mapInferredSchema";
-import isMemoryBlobName from "@/modules/datasets/isMemoryBlobName";
+import useMemoryDocuments from "@/modules/datasets/useMemoryDocuments";
+import MemoryControls from "@/modules/datasets/MemoryControls";
 import TrashIcon from "@/ui/elements/TrashIcon";
 import cognifyDataset from "@/modules/datasets/cognifyDataset";
 import pollDatasetStatus from "@/modules/datasets/pollDatasetStatus";
@@ -50,6 +51,7 @@ import { describeProcessingError } from "../processingErrorMessage";
 import { v4 as uuid } from "uuid";
 
 interface FileEntry {
+  externalMetadata?: unknown;
   id: string;
   name: string;
   extension?: string;
@@ -117,37 +119,10 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
     mimeType: d.originalMimeType || d.original_mime_type || d.mimeType,
     size: d.dataSize ?? d.size ?? d.size_bytes ?? d.file_size,
     createdAt: d.createdAt,
+    externalMetadata: d.externalMetadata,
   })), [rawFiles]);
-  // data id → session id parsed from the memory blob ("Session ID: <id>"
-  // header written by the session→graph bridge), or null when none found.
-  const [memorySessionIds, setMemorySessionIds] = useState<Record<string, string | null>>({});
-
-  useEffect(() => {
-    if (!cogniInstance) return;
-    const targets = files.filter(f => isMemoryBlobName(f.name) && !(f.id in memorySessionIds));
-    if (targets.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      const entries = await Promise.all(targets.map(async (f) => {
-        try {
-          const res = await cogniInstance.fetch(`/v1/datasets/${datasetId}/data/${f.id}/raw`);
-          if (!res.ok) return [f.id, null] as const;
-          const text = await res.text();
-          const m = text.match(/^Session ID:\s*(\S+)/);
-          return [f.id, m ? m[1] : null] as const;
-        } catch {
-          return [f.id, null] as const;
-        }
-      }));
-      if (cancelled) return;
-      setMemorySessionIds(prev => {
-        const next = { ...prev };
-        for (const [id, sid] of entries) next[id] = sid;
-        return next;
-      });
-    })();
-    return () => { cancelled = true; };
-  }, [cogniInstance, datasetId, files, memorySessionIds]);
+  const [memoryRevision, setMemoryRevision] = useState(0);
+  const memory = useMemoryDocuments(cogniInstance, datasetId, files, memoryRevision);
   const [isDragging, setIsDragging] = useState(false);
   const { stage: uploadStage, progress: uploadProgress, upload } = useBrainUpload(cogniInstance);
   const { pendingWarning: pendingLowBalanceWarning, isEstimating, confirmUpload, cancel: cancelLowBalanceUpload } = useLowBalanceUploadWarning();
@@ -576,6 +551,7 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
         }
       },
       onProcessed: async (ctx) => {
+        setMemoryRevision(n => n + 1);
         await loadFiles();
         setLastSynced(new Date().toISOString());
         trackEvent({
@@ -591,6 +567,7 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
         recordUploadSuccess(ctx.durationMs, totalBytes, filesArray.length);
       },
       onProcessingError: async (error, ctx) => {
+        setMemoryRevision(n => n + 1);
         await loadFiles();
         const errorMessage = error instanceof Error ? error.message : String(error);
         captureException(error, { datasetId, fileCount: filesArray.length, totalBytes, durationMs: ctx.durationMs, stage: "processing" });
@@ -687,7 +664,7 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
     }
   }
 
-  const filtered = search ? files.filter((f) => f.name.toLowerCase().includes(search.toLowerCase())) : files;
+  const filtered = search ? memory.filtered.filter((f) => `${f.name} ${memory.summary(f)?.title ?? ""} ${memory.summary(f)?.snippet ?? ""}`.toLowerCase().includes(search.toLowerCase())) : memory.filtered;
 
   if ((loading && files.length === 0) || isInitializing) {
     return <><TrackPageView page="Dataset Detail" additionalProperties={{ dataset_id: datasetId }} /><PageLoading name="Files" /></>;
@@ -1006,11 +983,13 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
       )}
 
       {/* Files table */}
+      <MemoryControls memory={memory} />
       <FilesTable
         files={filtered.map(file => ({ ...file, completed: completionById.get(file.id) }))}
-        memorySessionIds={memorySessionIds}
+        memory={memory}
         search={search}
-        loadError={filesError}
+        filtering={!memory.isAll}
+        loadError={filesError && files.length === 0}
         onDelete={(id) => setDeleteFileTarget(filtered.find((f) => f.id === id) ?? null)}
         onUploadClick={() => fileInputRef.current?.click()}
         onRetry={loadFiles}
@@ -1019,7 +998,7 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
       {files.length > 0 && (
         <ScrollLoader loaded={files.length} total={filesTotal} hasMore={hasMore}
           maxLoaded={MAX_RENDERED_ROWS} busy={loading} error={filesError}
-          onLoadMore={loadMore} noun="files" autoLoad={!search} />
+          onLoadMore={loadMore} noun="files" autoLoad={!search && memory.isAll} />
       )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

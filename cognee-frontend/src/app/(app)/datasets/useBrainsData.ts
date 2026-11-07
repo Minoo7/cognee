@@ -51,6 +51,7 @@ export function useBrainsData(): UseBrainsDataResult {
   const [refreshing, setRefreshing] = useState(false);
   const [outdatedDatasets, setOutdated] = useState<Set<string>>(new Set());
 
+  const [memoryRevision, setMemoryRevision] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const processingCounts = useDatasetProcessing(selectedId);
   const selectedIdRef = useRef(selectedId);
@@ -263,6 +264,7 @@ export function useBrainsData(): UseBrainsDataResult {
     // Shared by the success and processing-error paths below; only the
     // success path also updates the dataset's status.
     const fetchSelectedDocs = async (): Promise<void> => {
+      setMemoryRevision(n => n + 1);
       if (selectedIdRef.current === ds.id) await loadDocs(ds.id);
     };
 
@@ -472,6 +474,7 @@ export function useBrainsData(): UseBrainsDataResult {
     datasetsError,
     selectedId,
     selectedDataset,
+    memoryRevision,
     selectedDocs: selectedDocs.map(doc => ({ ...doc, completed: completionById.get(doc.id) })),
     docsLoading,
     docsError,

@@ -13,6 +13,7 @@ export interface DatasetRaw {
 }
 
 export interface FileEntry {
+  externalMetadata?: unknown;
   completed?: boolean;
   id: string;
   name: string;
@@ -61,6 +62,7 @@ export interface UseBrainsDataResult {
   selectedId: string | null;
   selectedDataset: Dataset | null;
   selectedDocs: FileEntry[];
+  memoryRevision: number;
   docsLoading: boolean;
   docsError: boolean;
   docsTotal: number | null;

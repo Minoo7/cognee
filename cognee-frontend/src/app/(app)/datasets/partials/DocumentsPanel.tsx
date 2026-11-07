@@ -1,6 +1,9 @@
 "use client";
 
 import { useRef, useState, type ReactElement } from "react";
+import { useCogniInstance } from "@/modules/tenant/TenantProvider";
+import useMemoryDocuments from "@/modules/datasets/useMemoryDocuments";
+import MemoryControls from "@/modules/datasets/MemoryControls";
 import { Loader } from "@mantine/core";
 import PageLoading from "@/ui/elements/PageLoading";
 import SkeletonBar from "@/ui/elements/SkeletonBar";
@@ -19,6 +22,7 @@ import type { DatasetProcessing } from "@/modules/datasets/useDatasetProcessing"
 // list (or the appropriate empty/loading state). Owns the file input ref, the
 // drag counter, and the drag-over highlight — all purely presentational.
 export default function DocumentsPanel<T extends DocRow>({
+  memoryRevision = 0,
   processingCounts, processingCountsError = false, processingFailed = false, onRefreshProcessing,
   selectedId,
   selectedName,
@@ -41,6 +45,7 @@ export default function DocumentsPanel<T extends DocRow>({
   onRetryBuild,
   onRetryDocs,
 }: {
+  memoryRevision?: number;
   processingCounts?: DatasetProcessing;
   processingCountsError?: boolean;
   processingFailed?: boolean;
@@ -68,6 +73,8 @@ export default function DocumentsPanel<T extends DocRow>({
   onRetryBuild: () => void;
   onRetryDocs: () => void;
 }): ReactElement {
+  const { cogniInstance } = useCogniInstance();
+  const memory = useMemoryDocuments(cogniInstance, selectedId, docs, memoryRevision);
   const scrollRef = useRef<HTMLDivElement>(null);
   const displayedCount = total != null && total >= 0 ? total : docs.length;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -142,6 +149,7 @@ export default function DocumentsPanel<T extends DocRow>({
           </div>
         )}
 
+        {selectedId && <MemoryControls memory={memory} />}
         {/* Content */}
         <div ref={scrollRef} style={{ flex: 1, overflowY: "auto" }}>
           {!selectedId ? (
@@ -171,12 +179,12 @@ export default function DocumentsPanel<T extends DocRow>({
               </span>
             </div>
           ) : (
-            <DocumentList docs={docs} onDelete={onDeleteDoc} />
+            <DocumentList docs={memory.filtered} onDelete={onDeleteDoc} memory={memory} />
           )}
           {selectedId && docs.length > 0 && onLoadMore && (
             <ScrollLoader loaded={docs.length} total={total != null && total >= 0 ? total : null}
               hasMore={hasMore} maxLoaded={MAX_RENDERED_ROWS} busy={docsLoading}
-              error={docsError} onLoadMore={onLoadMore} rootRef={scrollRef} compact />
+              error={docsError} onLoadMore={onLoadMore} rootRef={scrollRef} compact autoLoad={memory.isAll} />
           )}
         </div>
       </div>

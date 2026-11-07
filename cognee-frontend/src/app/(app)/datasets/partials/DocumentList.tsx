@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "@/modules/datasets/memoryReader.module.css";
+import type { MemoryDocuments } from "@/modules/datasets/useMemoryDocuments";
 import type { ReactElement } from "react";
 import FileIcon, { getExtMeta } from "@/ui/elements/FileIcon";
 import { decodeFilename, formatDate, formatFileSize } from "@/utils/fileFormat";
@@ -7,6 +9,7 @@ import { capRows, MAX_RENDERED_ROWS } from "@/modules/datasets/maxRenderedRows";
 import ProcessingBadge from "./ProcessingBadge";
 
 export interface DocRow {
+  externalMetadata?: unknown;
   completed?: boolean;
   id: string;
   name: string;
@@ -21,8 +24,10 @@ export interface DocRow {
 export default function DocumentList<T extends DocRow>({
   docs,
   onDelete,
+  memory,
 }: {
   docs: T[];
+  memory?: MemoryDocuments;
   onDelete: (doc: T) => void;
 }): ReactElement {
   // The paging hook owns the live cap; this protects independent consumers.
@@ -31,12 +36,13 @@ export default function DocumentList<T extends DocRow>({
   return (
     <>
       {visible.map((doc, i) => {
-        const displayName = decodeFilename(doc.name);
-        const meta = getExtMeta(displayName, doc.extension);
+        const summary = memory?.summary(doc);
+        const displayName = summary?.title ?? decodeFilename(doc.name);
+        const meta = getExtMeta(decodeFilename(doc.name), doc.extension);
         return (
           <div key={doc.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderBottom: i < visible.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none" }}>
             <FileIcon {...meta} />
-            <span style={{ flex: 1, fontSize: 13, color: "#EDECEA", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</span>
+            {summary ? <button className={styles.opener} onClick={() => memory?.open(doc.id)}><span className={styles.rowTitle}>{displayName}</span><span className={styles.rowMetadata}><span className={styles.badge}>{summary.kind}</span><span className={`${styles.badge} ${styles.agent}`}>{summary.agent}</span></span>{summary.snippet && summary.snippet !== displayName && <small className={styles.snippet}>{summary.snippet}</small>}</button> : <span style={{ flex: 1, fontSize: 13, color: "#EDECEA", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</span>}
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
               <ProcessingBadge completed={doc.completed} />
               <span style={{ fontSize: 11, color: "rgba(237,236,234,0.55)", fontWeight: 500, minWidth: 32, textAlign: "right" }}>{meta.label}</span>
