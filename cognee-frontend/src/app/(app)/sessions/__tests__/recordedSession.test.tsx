@@ -22,13 +22,31 @@ it("keeps processing separate from effective status and the transcript; B cannot
   render(<SessionsPage />);
   fireEvent.click(await screen.findByRole("button", { name: /^A / }));
   expect(await screen.findByText("processed-A")).toBeInTheDocument();
-  expect(await screen.findByText("Session effective status")).toBeInTheDocument();
+  expect(await screen.findByText("Session recorded status")).toBeInTheDocument();
   expect(screen.getByText(/latest 20 Q&As/)).toBeInTheDocument();
   expect(screen.getByText("Cost").parentElement).toHaveTextContent("Not recorded");
   fireEvent.click(screen.getByRole("button", { name: /^B / }));
   expect(screen.queryByText("processed-A")).not.toBeInTheDocument();
   await waitFor(() => expect(screen.getByText("No linked processing records available.")).toBeInTheDocument());
   expect(screen.getByRole("link", { name: "View raw records in Activity" })).toHaveAttribute("href", "/activity?session=B&owner=owner");
+});
+
+it("renders native session Q/A detail without the list-only effective status", async () => {
+  const nativeDetail = detail({
+    tokens_in: 0, tokens_out: 0, cost_usd: 0, msg_count: 1,
+    qas: [{ question: "What was saved?", answer: "A disposable local Q/A." }],
+  });
+  expect(nativeDetail).not.toHaveProperty("effective_status");
+  fetch.mockImplementation((url: string) => Promise.resolve(new Response(JSON.stringify(
+    url.startsWith("/v1/sessions/") ? nativeDetail : []
+  ))));
+  render(<SessionsPage />);
+  fireEvent.click(await screen.findByRole("button", { name: /^A / }));
+  fireEvent.click(await screen.findByRole("button", { name: /What was saved\?/ }));
+  expect(await screen.findByText("A disposable local Q/A.")).toBeInTheDocument();
+  expect(screen.getByText("Session recorded status").parentElement).toHaveTextContent("running");
+  expect(screen.queryByText("Session effective status")).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
 it("distinguishes identical session IDs by displayed owner and rejects mismatched detail", async () => {

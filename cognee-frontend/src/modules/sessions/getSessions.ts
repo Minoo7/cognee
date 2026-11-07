@@ -664,7 +664,8 @@ export interface TraceEntry {
   time?: string;
 }
 
-export interface SessionDetail extends SessionRow {
+// Native detail returns the stored status; only list rows add effective_status.
+export interface SessionDetail extends Omit<SessionRow, "effective_status"> {
   label: string | null;
   msg_count: number;
   tool_calls: number;

@@ -63,7 +63,7 @@ export async function getSessionDetailStrict(instance: CogneeInstance,
   if (!Array.isArray(row.qas) || !Array.isArray(row.traces) ||
       !["tokens_in", "tokens_out", "cost_usd"].every((field) => nullableNumber(row[field])) ||
       !["dataset_id", "started_at", "ended_at", "last_activity_at", "last_model", "label"].every((field) => nullableString(row[field])) ||
-      typeof row.status !== "string" || typeof row.effective_status !== "string" ||
+      typeof row.status !== "string" ||
       typeof row.msg_count !== "number" || typeof row.tool_calls !== "number") {
     throw new RecordingSchemaError("Invalid session detail response");
   }

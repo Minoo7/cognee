@@ -8,7 +8,7 @@ export function run(overrides: Partial<RecordedRun> = {}): RecordedRun {
     started_at: null, ended_at: null, user_id: "owner", session_ids: ["A"], parent_operation_id: null, ...overrides };
 }
 export function detail(overrides: Partial<SessionDetail> = {}): SessionDetail {
-  return { session_id: "A", user_id: "owner", dataset_id: "same-dataset", status: "running", effective_status: "running",
+  return { session_id: "A", user_id: "owner", dataset_id: "same-dataset", status: "running",
     started_at: null, last_activity_at: null, ended_at: null, tokens_in: null, tokens_out: 0, cost_usd: null,
     error_count: 0, last_model: null, label: null, msg_count: 0, tool_calls: 0, qas: [], traces: [], ...overrides };
 }

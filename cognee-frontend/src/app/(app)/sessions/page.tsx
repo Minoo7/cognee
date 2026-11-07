@@ -390,7 +390,7 @@ function SessionDetailPanel({ detail }: { detail: SessionDetail }) {
         <StatCard label="Duration" value={formatDuration(dur)} />
       </div>
 
-      <MetaRow label="Session effective status" value={detail.effective_status || detail.status || "unknown"} />
+      <MetaRow label="Session recorded status" value={detail.status} />
 
       {/* Metadata — between KPIs and transcript */}
       <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", gap: 10, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
