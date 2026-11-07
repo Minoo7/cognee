@@ -1,5 +1,6 @@
 "use client";
 
+import type { UsageScope } from "../recordedNodeUsage";
 import type { NarrationDisplay } from "../useNarration";
 import TourControl from "./TourControl";
 
@@ -17,21 +18,22 @@ interface BusinessDockProps {
   // a toggle whose only visible effect is extra dots, so a count is the one
   // signal that tells the user it has data behind it before they click.
   recordCount: number;
+  usageScope: UsageScope;
+  usedNodeCount: number | null;
+  onToggleUsage: () => void;
+  usageStatus: string | null;
 }
 
-// The bottom dock: narration line + altimeter + live indicator + tour —
-// extracted from BusinessView unchanged. The container is pointer-events-
-// none (only the controls row restores them) so clicks in the dock's empty
-// corners fall through to the canvas underneath — that's where the minimap
-// lives, and it has to stay clickable.
 export default function BusinessDock({
   narration, altimeter, onAltimeterLevel, live, tourPlaying, onTourStart, onTourStop, recordCount,
+  usageScope, usedNodeCount, onToggleUsage, usageStatus,
 }: BusinessDockProps) {
   return (
     <div
       className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-1.5 px-4 pb-2.5"
       style={{ background: "linear-gradient(transparent, rgba(14,21,38,.96) 55%)" }}
     >
+      {usageStatus && <div role="status" className="text-center text-[#7E8CA6]">{usageStatus}</div>}
       {narration.text && (
         <div
           role="status"
@@ -65,6 +67,15 @@ export default function BusinessDock({
             );
           })}
         </div>
+        <button
+          type="button"
+          aria-pressed={usageScope === "used"}
+          onClick={onToggleUsage}
+          title="Only nodes used in recorded events, latest 200, not lifetime"
+          className={`rounded-[8px] border border-[#2A3652] bg-[#1A2438] px-2.5 py-1.5 ${usageScope === "used" ? "text-[#43D9E8]" : "text-[#7E8CA6] hover:text-[#E9EEF6]"}`}
+        >
+          Used in answers · {usedNodeCount ?? "…"}
+        </button>
         <span
           role="status"
           aria-label={live ? "Live updates connected" : "Live updates reconnecting"}

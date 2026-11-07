@@ -59,13 +59,11 @@ interface BusinessCanvasProps {
   focusSets: Set<string> | null;
   onLevelChange?: (level: number, plumbing: boolean) => void;
   sourceCardRefs?: CardRefMap;
-  activeDatasetId?: string | null;
+  worldKey?: string | null;
   // Ports the reload-era "cognify complete" narration's trigger
   // (customer_tutorial.html ~7215) — fires when the simulation sees ids it
   // hasn't seen before, distinct from a same-data refetch.
   onGrowth?: (newborn: BusinessEntity[]) => void;
-  // Entities that have EVER answered a live search, across the whole
-  // session's event log — a lasting fact, not the current 9s spotlight.
   answeredIds?: Set<string>;
   // The shortest path currently being traced (useShortestPath) — empty
   // when no path is active.
@@ -100,7 +98,7 @@ interface BusinessCanvasProps {
 const BusinessCanvas = forwardRef<BusinessCanvasHandle, BusinessCanvasProps>(function BusinessCanvas(
   {
     brainState, selectedId, onSelectEntity, onHover, onHoverMove, onBackgroundClick, spotlight, focusSets,
-    onLevelChange, sourceCardRefs, activeDatasetId, onGrowth,
+    onLevelChange, sourceCardRefs, worldKey, onGrowth,
     answeredIds, pathIds, pathEdgeKeys,
     askingAgent, hoveredPrincipalId, onHoverAgent,
   },
@@ -197,7 +195,7 @@ const BusinessCanvas = forwardRef<BusinessCanvasHandle, BusinessCanvasProps>(fun
     noopTick,
     onGrowth,
     activeIds,
-    activeDatasetId,
+    worldKey,
   );
 
   useImperativeHandle(ref, () => ({
@@ -233,7 +231,7 @@ const BusinessCanvas = forwardRef<BusinessCanvasHandle, BusinessCanvasProps>(fun
     // same dataset transitions from empty to populated, or the camera never
     // frames the graph that just landed.
     if (width === 0 || height === 0) return;
-    const datasetId = activeDatasetId ?? null;
+    const datasetId = worldKey ?? null;
     const hasEntities = brain.entities.length > 0;
     const prev = lastFitRef.current;
     if (prev && prev.datasetId === datasetId && (prev.hadEntities || !hasEntities)) return;
@@ -241,7 +239,7 @@ const BusinessCanvas = forwardRef<BusinessCanvasHandle, BusinessCanvasProps>(fun
     lastFitRef.current = { datasetId, hadEntities: hasEntities };
     fitToEntities(brain.entities, width, height, !isFirstFit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeDatasetId, brain.entities, width, height]);
+  }, [worldKey, brain.entities, width, height]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -436,7 +434,7 @@ const BusinessCanvas = forwardRef<BusinessCanvasHandle, BusinessCanvasProps>(fun
     };
   }, [
     // selectedId/spotlight/focusSets/answeredIds/pathIds/pathEdgeKeys/
-    // activeDatasetId are deliberately NOT here — they're read through the
+    // worldKey are deliberately NOT here — they're read through the
     // refs synced above, so this persistent RAF loop survives their changes
     // instead of being torn down and rebuilt on every one (COG-6233; see
     // this component's own header comment on why refs exist).

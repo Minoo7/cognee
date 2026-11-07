@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CogneeInstance } from "@/modules/instances/types";
 import { HttpError } from "@/services/http/errors";
 import getLiveEvents from "./getLiveEvents";
+import { indexRecordedUsage, type RecordedNodeUsage } from "./recordedNodeUsage";
 import type { SessionEvent } from "./types";
 
 const POLL_MS = 1500;
 const MAX_BACKOFF_MS = 10000;
 const MAX_EVENTS = 200;
+const EMPTY_EVENTS: SessionEvent[] = [];
 
 function eventKey(e: SessionEvent): string {
   return `${e.kind || "search"}|${e.qa_id || ""}|${e.time || ""}|${e.question || ""}`;
@@ -17,12 +19,10 @@ function eventKey(e: SessionEvent): string {
 export interface LiveUpdates {
   events: SessionEvent[];
   live: boolean;
+  usageReady: boolean;
+  usage: RecordedNodeUsage;
   latestSearchEvent: SessionEvent | null;
   consumeLatestSearchEvent: () => void;
-  // Every entity id that has EVER appeared in a search event's node_ids
-  // across this session's accumulated event log — not just the current 9s
-  // spotlight — so the canvas can mark "this has answered a question
-  // before" as a lasting fact rather than a moment.
   answeredIds: Set<string>;
 }
 
@@ -39,14 +39,23 @@ export function useBusinessLiveUpdates(
   datasetId: string | null,
   cogniInstance: CogneeInstance,
 ): LiveUpdates {
-  const [events, setEvents] = useState<SessionEvent[]>([]);
-  const [live, setLive] = useState(true);
-  const [latestSearchEvent, setLatestSearchEvent] = useState<SessionEvent | null>(null);
-  const cursorRef = useRef<string | null>(null);
-  const seenRef = useRef<Set<string>>(new Set());
+  const [recorded, setRecorded] = useState<{
+    datasetId: string | null;
+    instance: CogneeInstance;
+    events: SessionEvent[];
+    live: boolean;
+    usageReady: boolean;
+    latestSearchEvent: SessionEvent | null;
+  }>({ datasetId, instance: cogniInstance, events: EMPTY_EVENTS, live: true, usageReady: false, latestSearchEvent: null });
+  const current = recorded.datasetId === datasetId && recorded.instance === cogniInstance;
+  const events = current ? recorded.events : EMPTY_EVENTS;
+  const usage = useMemo(() => indexRecordedUsage(events), [events]);
 
   useEffect(() => {
     const id = datasetId;
+    let cursorForDataset: string | null = null;
+    const seen = new Set<string>();
+    setRecorded({ datasetId, instance: cogniInstance, events: EMPTY_EVENTS, live: true, usageReady: false, latestSearchEvent: null });
     if (!id) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -54,26 +63,28 @@ export function useBusinessLiveUpdates(
 
     async function poll(datasetIdForPoll: string): Promise<void> {
       try {
-        const { events: fresh, cursor } = await getLiveEvents(datasetIdForPoll, cursorRef.current, cogniInstance);
+        const { events: fresh, cursor } = await getLiveEvents(datasetIdForPoll, cursorForDataset, cogniInstance);
         if (cancelled) return;
         failures = 0;
-        cursorRef.current = cursor;
-        setLive(true);
+        cursorForDataset = cursor;
         const deduped = fresh.filter((e) => {
           const key = eventKey(e);
-          if (seenRef.current.has(key)) return false;
-          seenRef.current.add(key);
+          if (seen.has(key)) return false;
+          seen.add(key);
           return true;
         });
-        if (deduped.length) {
-          setEvents((prev) => [...prev, ...deduped].slice(-MAX_EVENTS));
-          const lastSearch = deduped.filter((e) => (e.kind || "search") === "search").at(-1);
-          if (lastSearch) setLatestSearchEvent(lastSearch);
-        }
+        const lastSearch = deduped.filter((e) => (e.kind || "search") === "search").at(-1);
+        setRecorded((prev) => ({
+          ...prev,
+          events: deduped.length ? [...prev.events, ...deduped].slice(-MAX_EVENTS) : prev.events,
+          latestSearchEvent: lastSearch ?? prev.latestSearchEvent,
+          live: true,
+          usageReady: true,
+        }));
       } catch (error) {
         if (!cancelled) {
           failures++;
-          setLive(false);
+          setRecorded((prev) => ({ ...prev, live: false }));
           // A 409 means the backend rejected this exact cursor (e.g. it aged
           // out) — retrying with the same `since` value only produces the
           // same 409 forever, which is exactly what left the indicator
@@ -82,7 +93,7 @@ export function useBusinessLiveUpdates(
           // backoff-driven change). Dropping the cursor makes the next poll
           // ask for a fresh snapshot instead of repeating a rejected delta.
           if (error instanceof HttpError && error.status === 409) {
-            cursorRef.current = null;
+            cursorForDataset = null;
           }
         }
       } finally {
@@ -99,19 +110,6 @@ export function useBusinessLiveUpdates(
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
-      // Without this, switching datasets (or any remount) kept the old
-      // dataset's cursor and every event key it had ever seen — seenRef
-      // grows unbounded across mount/unmount cycles, and a stale cursor
-      // would ask the new dataset's poll for events "since" a timestamp
-      // that means nothing for it.
-      cursorRef.current = null;
-      seenRef.current.clear();
-      // Also drop the accumulated event log and pending chip — without
-      // this, the "▶ new answer" chip survived a dataset switch and
-      // playing it filtered node_ids that don't exist in the new dataset,
-      // recentering the camera on an empty focus set (COG-6233).
-      setEvents([]);
-      setLatestSearchEvent(null);
     };
   }, [datasetId, cogniInstance]);
 
@@ -119,16 +117,18 @@ export function useBusinessLiveUpdates(
     const ids = new Set<string>();
     events.forEach((e) => {
       if ((e.kind || "search") !== "search") return;
-      (e.node_ids as string[] | undefined)?.forEach((id) => ids.add(id));
+      e.node_ids?.forEach((id) => ids.add(id));
     });
     return ids;
   }, [events]);
 
   return {
     events,
-    live,
-    latestSearchEvent,
-    consumeLatestSearchEvent: () => setLatestSearchEvent(null),
+    live: current ? recorded.live : true,
+    usageReady: current && recorded.usageReady,
+    usage,
+    latestSearchEvent: current ? recorded.latestSearchEvent : null,
+    consumeLatestSearchEvent: () => setRecorded((prev) => ({ ...prev, latestSearchEvent: null })),
     answeredIds,
   };
 }

@@ -28,18 +28,26 @@ export function useEntitySelection(
   semanticLinks: SemanticLink[] | undefined,
   entityById: Record<string, BusinessEntity> | undefined,
 ): EntitySelection {
-  const [selectedEntity, setSelectedEntity] = useState<BusinessEntity | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedEntity = selectedId ? entityById?.[selectedId] ?? null : null;
   const [pathTargetId, setPathTargetId] = useState<string | null>(null);
-  const { pathIds, pathEdgeKeys } = useShortestPath(semanticLinks, selectedEntity?.id ?? null, pathTargetId);
+  const visibleTargetId = selectedEntity && pathTargetId && entityById?.[pathTargetId] ? pathTargetId : null;
+  if (selectedId && !selectedEntity) {
+    setSelectedId(null);
+    setPathTargetId(null);
+  } else if (pathTargetId && !visibleTargetId) {
+    setPathTargetId(null);
+  }
+  const { pathIds, pathEdgeKeys } = useShortestPath(semanticLinks, selectedEntity?.id ?? null, visibleTargetId);
 
   const clearPath = useCallback(() => setPathTargetId(null), []);
   const clearSelection = useCallback(() => {
-    setSelectedEntity(null);
+    setSelectedId(null);
     setPathTargetId(null);
   }, []);
 
   const selectEntity = useCallback((entity: BusinessEntity) => {
-    setSelectedEntity(entity);
+    setSelectedId(entity.id);
     setPathTargetId(null);
   }, []);
 
@@ -49,13 +57,13 @@ export function useEntitySelection(
         setPathTargetId(entity.id);
         return;
       }
-      setSelectedEntity((current) => (current?.id === entity.id ? null : entity));
+      setSelectedId((current) => (current === entity.id ? null : entity.id));
       setPathTargetId(null);
     },
     [selectedEntity],
   );
 
-  const pathTargetName = pathTargetId ? String(entityById?.[pathTargetId]?.name || "") || null : null;
+  const pathTargetName = visibleTargetId ? String(entityById?.[visibleTargetId]?.name || "") || null : null;
   const pathHops = pathTargetName && pathIds.size ? pathIds.size - 1 : null;
 
   return {

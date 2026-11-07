@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import type { CogneeInstance } from "@/modules/instances/types";
 import { useBusinessScene } from "@/modules/business/useBusinessScene";
@@ -40,6 +40,8 @@ import BusinessEmptyState from "@/modules/business/panels/BusinessEmptyState";
 import ScrollFadeContainer from "@/modules/business/panels/ScrollFadeContainer";
 import { useEntitySelection } from "@/modules/business/useEntitySelection";
 
+import { projectUsedBrain, type UsageScope } from "@/modules/business/recordedNodeUsage";
+
 const WHAT_IF_SPOTLIGHT_MS = 12000;
 
 interface BusinessViewProps {
@@ -57,8 +59,15 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
   const { display: narration, narrate } = useNarration();
   const live = useBusinessLiveUpdates(scene.activeDatasetId, cogniInstance);
 
+  const [usageScope, setUsageScope] = useState<UsageScope>("all");
+  const usedBrain = useMemo(
+    () => scene.brainState ? projectUsedBrain(scene.brainState, live.usage) : null,
+    [scene.brainState, live.usage],
+  );
+  const brain = usageScope === "used" ? usedBrain : scene.brainState;
+
   const canvasRef = useRef<BusinessCanvasHandle>(null);
-  const selection = useEntitySelection(scene.brainState?.semanticLinks, scene.brainState?.entityById);
+  const selection = useEntitySelection(brain?.semanticLinks, brain?.entityById);
   const [hoveredHit, setHoveredHit] = useState<SceneHit>(null);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0, containerWidth: 0 });
   const [hoveredPrincipalId, setHoveredPrincipalId] = useState<string | null>(null);
@@ -70,6 +79,10 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
   const [hoveredMarkerAgentId, setHoveredMarkerAgentId] = useState<string | null>(null);
   const [focusSets, setFocusSets] = useState<Set<string> | null>(null);
   const [spotlight, setSpotlight] = useState<Spotlight | null>(null);
+  useEffect(() => {
+    setHoveredHit(null);
+    setSpotlight(null);
+  }, [usageScope, scene.activeDatasetId, cogniInstance]);
   // UI-facing mirror of the canvas's ref-based level/plumbing (see
   // useBusinessCamera's onLevelChange) — only for highlighting the active
   // altimeter button, never read by the draw loop itself.
@@ -174,20 +187,15 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
     live.latestSearchEvent,
     live.consumeLatestSearchEvent,
     governanceIndex.agents,
-    scene.brainState,
+    brain,
     setSpotlight,
     setFocusSets,
     narrate,
     scene.activeDatasetId,
   );
 
-  const tour = useBusinessTour(canvasRef, narrate, scene.brainState);
-  // Paused while a source focus is active, not just during the tour: insights
-  // pick from the WHOLE graph (cross-source bridges by design), so with a
-  // focus lens on they'd spotlight and narrate entities the lens is currently
-  // dimming — which reads as the graph showing content from outside the
-  // selected source (COG-6233).
-  useBusinessAutoInsights(canvasRef, scene.brainState, narrate, setSpotlight, !tour.isPlaying && !focusSets);
+  const tour = useBusinessTour(canvasRef, narrate, brain);
+  useBusinessAutoInsights(canvasRef, brain, narrate, setSpotlight, !tour.isPlaying && !focusSets);
 
   // Any pointer interaction ends the tour on the spot — waiting for the
   // script to finish (or hunting for the stop control through the blur)
@@ -286,8 +294,8 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
     canvasRef.current?.fit(true);
   }, [narrate]);
 
-  const selectedSourceDetail = selectedSourceName && scene.brainState
-    ? computeSourceDetail(selectedSourceName, scene.brainState)
+  const selectedSourceDetail = selectedSourceName && brain?.sourceNames.includes(selectedSourceName)
+    ? computeSourceDetail(selectedSourceName, brain)
     : null;
 
   // "Single point of failure" preview: what would become unreachable if
@@ -296,8 +304,8 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
   // deliberate click (flies the camera to the would-be islands).
   const runWhatIfRemoval = useCallback(
     (entityId: string, entityName: string, flyCamera: boolean) => {
-      if (!scene.brainState) return;
-      const result = computeWhatIfRemoval(entityId, scene.brainState.semanticLinks);
+      if (!brain) return;
+      const result = computeWhatIfRemoval(entityId, brain.semanticLinks);
       if (!result.orphanedIds.size) {
         narrate(`removing ${entityName} wouldn't disconnect anything, no single point of failure here`, "#56DB7D");
         return;
@@ -310,7 +318,7 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
       );
       if (flyCamera) requestAnimationFrame(() => canvasRef.current?.focusOnIds(result.orphanedIds));
     },
-    [scene.brainState, setSpotlight, narrate],
+    [brain, setSpotlight, narrate],
   );
 
   return (
@@ -328,7 +336,7 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
     >
       <BusinessCanvas
         ref={canvasRef}
-        brainState={scene.brainState}
+        brainState={brain}
         selectedId={selection.selectedEntity?.id ?? null}
         onSelectEntity={(entity, shiftKey) => {
           setSelectedSourceName(null);
@@ -358,8 +366,8 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
         focusSets={focusSets}
         onLevelChange={(level, plumbing) => setAltimeterState({ level, plumbing })}
         sourceCardRefs={sourceCardRefs}
-        activeDatasetId={scene.activeDatasetId}
-        onGrowth={handleGrowth}
+        worldKey={usageScope === "used" ? `${scene.activeDatasetId}:used` : scene.activeDatasetId}
+        onGrowth={usageScope === "all" ? handleGrowth : undefined}
         answeredIds={live.answeredIds}
         pathIds={selection.pathIds}
         pathEdgeKeys={selection.pathEdgeKeys}
@@ -379,7 +387,7 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
         cogniInstance={cogniInstance}
         activeDatasetId={scene.activeDatasetId}
         onAnswer={qa.showManualAnswer}
-        entities={scene.brainState?.entities ?? null}
+        entities={brain?.entities ?? null}
         onPickEntity={(entity) => {
           setSelectedSourceName(null);
           selection.selectEntity(entity);
@@ -399,6 +407,8 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
           activeDatasetId={scene.activeDatasetId}
           onSelect={(id) => {
             scene.setActiveDatasetId(id);
+            setUsageScope("all");
+            setHoveredHit(null);
             selection.clearSelection();
             // A focus lens (source click or session-memory) from the PREVIOUS
             // dataset otherwise survives the switch: none of its names match
@@ -423,7 +433,7 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
       <div className="absolute left-0 top-[68px] bottom-[208px] w-[196px]">
         <ScrollFadeContainer className="h-full overflow-y-auto">
           <SourcesRail
-            brainState={scene.brainState}
+            brainState={brain}
             focusSets={focusSets}
             onToggleFocus={(name) => {
               const clearing = Boolean(focusSets && focusSets.has(name) && focusSets.size === 1);
@@ -432,14 +442,14 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
                 return;
               }
               setSelectedSourceName(name);
-              const entityCount = scene.brainState?.setEntityCount[name] ?? 0;
+              const entityCount = brain?.setEntityCount[name] ?? 0;
               // A source with zero extracted entities (e.g. Skill/other-stage
               // content) has nothing an entity-keyed focus lens can show —
               // entering the lens would dim every entity in the graph and
               // read as the canvas going blank, with no visible content and
               // no obvious reason why (COG-6233).
               if (!entityCount) {
-                const memberCount = scene.brainState?.setMemberCount[name] ?? 0;
+                const memberCount = brain?.setMemberCount[name] ?? 0;
                 narrate(
                   `${sourceLabel(name)} has no extracted entities yet — ${memberCount} item${memberCount === 1 ? "" : "s"} not shown as a graph`,
                   "#7E8CA6",
@@ -452,7 +462,7 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
               // invisible if the camera happened to be looking somewhere else
               // already, which read as the click doing nothing at all.
               const ids = new Set(
-                (scene.brainState?.entities ?? []).filter((e) => setsOf(e).includes(name)).map((e) => e.id),
+                (brain?.entities ?? []).filter((e) => setsOf(e).includes(name)).map((e) => e.id),
               );
               if (ids.size) requestAnimationFrame(() => canvasRef.current?.focusOnIds(ids));
             }}
@@ -519,7 +529,7 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
           entity={selection.selectedEntity}
           docCount={docCountFor(selection.selectedEntity)}
           connectionCount={connectionCountFor(selection.selectedEntity)}
-          events={live.events}
+          usage={live.usage}
           onClose={selection.clearSelection}
           pathTargetName={selection.pathTargetName}
           pathHops={selection.pathHops}
@@ -540,7 +550,18 @@ export default function BusinessView({ cogniInstance }: BusinessViewProps) {
         tourPlaying={tour.isPlaying}
         onTourStart={tour.start}
         onTourStop={tour.stop}
-        recordCount={scene.brainState?.plumbingNodes.length ?? 0}
+        recordCount={brain?.plumbingNodes.length ?? 0}
+        usageScope={usageScope}
+        usedNodeCount={live.usageReady && live.live ? (usedBrain?.entities.length ?? 0) + (usedBrain?.plumbingNodes.length ?? 0) : null}
+        onToggleUsage={() => {
+          setUsageScope((scope) => scope === "all" ? "used" : "all");
+          setHoveredHit(null);
+          setSpotlight(null);
+        }}
+        usageStatus={!live.live ? "live feed reconnecting, usage may be incomplete"
+            : !live.usageReady ? "loading recorded usage…"
+              : usageScope === "used" && !brain?.entities.length && !brain?.plumbingNodes.length ? "No recorded answer usage yet" : null
+        }
       />
       {/* Only the true "content not here yet" states: no brainState at all,
           or the focused dataset's own graph still fetching (first visit to a

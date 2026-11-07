@@ -141,7 +141,7 @@ function buildSourceColors(
   return colors;
 }
 
-function countBySet(nodes: BusinessGraphNode[]): Record<string, number> {
+export function countBySet(nodes: BusinessGraphNode[]): Record<string, number> {
   const counts: Record<string, number> = {};
   nodes.forEach((n) => setsOf(n).forEach((s) => { counts[s] = (counts[s] || 0) + 1; }));
   return counts;
@@ -218,7 +218,7 @@ const HUB_MIN_DEGREE = 2;
 // connections span. Below HUB_MIN_DEGREE the number is noise (any entity
 // with one link "wins" by default on a sparse graph), so this returns null
 // rather than surface a meaningless hub.
-function computeHubInsight(
+export function computeHubInsight(
   semanticLinks: SemanticLink[],
   byId: Record<string, BusinessGraphNode>,
 ): BrainState["hub"] {

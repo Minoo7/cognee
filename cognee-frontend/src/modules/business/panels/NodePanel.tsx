@@ -1,7 +1,7 @@
 "use client";
 
 import type { BusinessEntity } from "../sceneTypes";
-import type { SessionEvent } from "../types";
+import type { RecordedNodeUsage } from "../recordedNodeUsage";
 import { setsOf } from "../computeBrainState";
 import { truncate } from "../textUtils";
 
@@ -9,7 +9,7 @@ interface NodePanelProps {
   entity: BusinessEntity | null;
   docCount: number;
   connectionCount: number;
-  events: SessionEvent[];
+  usage: RecordedNodeUsage;
   onClose: () => void;
   // The shortest-path trace (useShortestPath) — pathHops is null when no
   // second record has been shift-clicked yet, in which case the panel
@@ -29,11 +29,11 @@ interface NodePanelProps {
 // existing spotlight — "which answers used this node" — from the same
 // node_ids data collect_session_events already carries, no new query.
 export default function NodePanel({
-  entity, docCount, connectionCount, events, onClose, pathTargetName, pathHops, onClearPath, onSimulateRemoval,
+  entity, docCount, connectionCount, usage, onClose, pathTargetName, pathHops, onClearPath, onSimulateRemoval,
 }: NodePanelProps) {
   if (!entity) return null;
   const sets = setsOf(entity);
-  const usedIn = events.filter((e) => e.node_ids?.includes(entity.id));
+  const usedIn = usage.get(entity.id) ?? [];
 
   return (
     <div className="absolute right-4 top-16 z-10 w-72 rounded-xl border border-[#2A3652] bg-[#1A2438] p-4 text-sm text-[#E9EEF6]">
