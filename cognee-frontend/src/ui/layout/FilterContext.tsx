@@ -5,6 +5,7 @@ import { useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-
 import { useCogniInstance, useTenant } from "@/modules/tenant/TenantProvider";
 import getDatasets from "@/modules/datasets/getDatasets";
 import { BACKGROUND_QUERY_RETRY_COUNT, backgroundQueryRetryDelay } from "@/modules/query/backgroundQueryRetry";
+import { DEFAULT_LOCAL_SCOPE_ID } from "@/modules/tenant/localTenantApi";
 
 // Local/loaded pods can take several seconds per request (see COG-5722) —
 // a background poll shouldn't surface a false "error" at the default 10s
@@ -183,7 +184,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       name: t.name,
       initial: t.name.charAt(0).toUpperCase(),
       color: colorForTenant(t.id),
-      type: "organization" as const,
+      type: t.id === DEFAULT_LOCAL_SCOPE_ID ? "personal" as const : "organization" as const,
     }));
   }, [availableTenants]);
 
@@ -203,7 +204,13 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     const separatorIndex = persistedKey.indexOf(PERSISTED_FIELD_SEPARATOR);
     const id = persistedKey.slice(0, separatorIndex);
     const name = persistedKey.slice(separatorIndex + PERSISTED_FIELD_SEPARATOR.length);
-    return { id, name, initial: name.charAt(0).toUpperCase(), color: colorForTenant(id), type: "organization" as const };
+    return {
+      id,
+      name,
+      initial: name.charAt(0).toUpperCase(),
+      color: colorForTenant(id),
+      type: id === DEFAULT_LOCAL_SCOPE_ID ? "personal" as const : "organization" as const,
+    };
   }, [persistedKey]);
 
   // The workspace shown in the topbar — derived, not its own state. It used

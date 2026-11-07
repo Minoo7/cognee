@@ -5,6 +5,10 @@ import { CogneeInstance } from "@/modules/instances/types";
 import { Tenant } from "./types";
 import localFetch from "@/modules/instances/localFetch";
 import { useUser, type AvailableTenant } from "@/modules/users/UserContext";
+import {
+  DEFAULT_LOCAL_SCOPE_ID,
+  PERSONAL_WORKSPACE_NAME,
+} from "./localTenantApi";
 
 // Open-source override — identical to the SaaS TenantContext except PlanType,
 // whose home (the cloud payment infrastructure module) is private. Keep the
@@ -17,10 +21,8 @@ export type PlanType = string | null;
 // TenantContext only owns the ACTIVE tenant's operational state.
 export type { AvailableTenant };
 
-// The auto-created first workspace every user gets on sign-up. It can never be
-// deleted, and is identified purely by this name (kept in sync with the name
-// used when the workspace is created in TenantProvider).
-export const PERSONAL_WORKSPACE_NAME = "Personal Workspace";
+// Display name for Cognee's built-in personal scope, whose backend tenant id is null.
+export { PERSONAL_WORKSPACE_NAME };
 
 export interface TenantContextValue {
   tenant: Tenant | null;
@@ -86,11 +88,11 @@ export function useTenant() {
     (t) => t.id === context.tenant?.tenant_id,
   );
   const isOwner = currentAvailable?.isOwner ?? false;
-  // Whether the currently-selected tenant is the user's personal workspace —
-  // matched by name, since the tenant list carries no creation date. Falls back
-  // to the active tenant's own name when it isn't in availableTenants yet.
+  // Local mode uses a stable UI id for the backend's null tenant. The name check
+  // preserves the hosted provider's existing personal-workspace convention.
   const currentName = currentAvailable?.name ?? context.tenant?.tenant_name;
-  const isPersonal = currentName === PERSONAL_WORKSPACE_NAME;
+  const isPersonal = context.tenant?.tenant_id === DEFAULT_LOCAL_SCOPE_ID
+    || currentName === PERSONAL_WORKSPACE_NAME;
   return {
     tenant: context.tenant,
     isInitializing: context.isInitializing,

@@ -118,7 +118,7 @@ export default function ShareDatasetModal({ datasetId, datasetName, onClose, pag
               const isShared = sharedWith.has(a.id);
               const isSharing = sharing === a.id;
               const displayName = a.is_agent ? a.agent_type : a.email;
-              const sub = a.is_agent ? a.agent_short_id : (a.email === "default_user@example.com" ? "Owner" : "User");
+              const sub = a.is_agent ? a.agent_short_id : (a.is_default ? "Owner" : "User");
               return (
                 <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: a.is_agent ? "#6510F4" : "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

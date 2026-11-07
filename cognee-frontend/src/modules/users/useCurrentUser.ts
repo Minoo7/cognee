@@ -2,6 +2,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import getUser from "./getUser";
+import getLocalUser from "./getLocalUser";
 import isCloudEnvironment from "@/utils/isCloudEnvironment";
 import type CogneeUser from "./CogneeUser";
 
@@ -16,11 +17,13 @@ export const CURRENT_USER_QUERY_KEY = ["current-user"] as const;
 // run in local mode, where it would race LocalProvider's own /local-login
 // redirect and win.
 export function useCurrentUser(enabled = true): UseQueryResult<CogneeUser | null> {
+  const cloud = isCloudEnvironment();
+
   return useQuery({
     queryKey: CURRENT_USER_QUERY_KEY,
     queryFn: async (): Promise<CogneeUser | null> => {
       try {
-        return await getUser();
+        return cloud ? await getUser() : await getLocalUser();
       } catch {
         // No session (getUser redirects) or the fetch failed — treat as
         // unauthenticated rather than surfacing an error to every consumer.
@@ -30,6 +33,6 @@ export function useCurrentUser(enabled = true): UseQueryResult<CogneeUser | null
     staleTime: Infinity,
     retry: false,
     throwOnError: false,
-    enabled: enabled && isCloudEnvironment(),
+    enabled,
   });
 }

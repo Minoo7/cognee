@@ -64,7 +64,6 @@ export function ownerDisplayName(email: string | null): string {
     const type = parts.join(" ");
     return `${type} ${shortId}`;
   }
-  if (email === "default_user@example.com") return "You";
   return email.split("@")[0];
 }
 

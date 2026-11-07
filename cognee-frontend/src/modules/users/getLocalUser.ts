@@ -1,16 +1,25 @@
-"use server";
-
 import CogneeUser from "./CogneeUser";
+import { getLocalApiUrl } from "./getLocalApiUrl";
+import { object, parse, string } from "valibot";
+
+const localUserSchema = object({
+  id: string(),
+  email: string(),
+});
 
 export default async function getLocalUser(): Promise<CogneeUser | null> {
-  // In local mode, we can't use Auth0 session.
-  // Return a placeholder user — the actual auth is handled by
-  // the backend cookie, not a server-side session.
-  // The LocalProvider already verified auth via /api/v1/users/me.
+  const response = await global.fetch(`${getLocalApiUrl()}/api/v1/users/me`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) return null;
+
+  const { id, email } = parse(localUserSchema, await response.json());
+
   return {
-    id: "local",
-    name: "Local User",
-    email: "local@cognee.local",
+    id,
+    name: email.split("@")[0] || email,
+    email,
     picture: "",
   };
 }
