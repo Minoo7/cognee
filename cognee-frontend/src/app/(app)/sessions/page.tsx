@@ -8,8 +8,6 @@ import SkeletonBar from "@/ui/elements/SkeletonBar";
 import {
   listSessions,
   getSessionStats,
-  getSessionDetail,
-  estimateCostUsd,
   type SessionRow,
   type SessionStats,
   type SessionDetail,
@@ -17,9 +15,8 @@ import {
   type TimeRange,
 } from "@/modules/sessions/getSessions";
 import SelfImprovementCard from "./partials/SelfImprovementCard";
-import ImproveCard from "./partials/ImproveCard";
-import { useGraphEnrichment } from "./partials/useGraphEnrichment";
-import type { EnrichmentRun } from "@/modules/sessions/getSessions";
+import { useSessionProcessing } from "./partials/useSessionProcessing";
+import type { SessionIdentity } from "@/modules/sessions/sessionOperations";
 import { parseServerIso, formatDate, formatRelativeTime, durationSeconds, formatDuration } from "./partials/format";
 
 const ACCENT = "#6510F4";
@@ -90,7 +87,7 @@ function asQA(raw: Record<string, unknown>): QAItem {
 }
 
 // Visual tokens per source. Recall keeps the existing purple "question" look; remember
-// gets a green "saved entry" look so the two are unmistakable side-by-side.
+// uses the existing green transcript styling.
 const SOURCE_META = {
   recall: {
     label: "Recall",
@@ -102,7 +99,7 @@ const SOURCE_META = {
   },
   remember: {
     label: "Remember",
-    bodyLabel: "Saved",
+    bodyLabel: "Recorded answer",
     bg: "rgba(134,239,172,0.18)",
     border: "rgba(134,239,172,0.40)",
     color: "#86EFAC",
@@ -234,7 +231,7 @@ function MessageCard({ qa, index }: { qa: QAItem; index: number }) {
   );
 }
 
-function Transcript({ qas, traces, enrichmentRuns }: { qas: Record<string, unknown>[]; traces: TraceEntry[]; enrichmentRuns: EnrichmentRun[] }) {
+function Transcript({ qas, traces }: { qas: Record<string, unknown>[]; traces: TraceEntry[] }) {
   // /recall always writes a trace with memory_query=question; /remember/entry never does.
   // Build the recall-question set from traces and tag each QA accordingly.
   // ponytail: heuristic only — replace with an explicit `source` field on SessionQAEntry
@@ -260,16 +257,8 @@ function Transcript({ qas, traces, enrichmentRuns }: { qas: Record<string, unkno
     );
   }, [items, query]);
 
-  // Improve entries join the timeline chronologically; hidden while searching,
-  // since the search matches question/answer text only.
-  const timeline = useMemo(() => {
-    const ts = (iso?: string | null): number => (iso ? parseServerIso(iso).getTime() || 0 : 0);
-    const qaEntries = filtered.map((qa) => ({ kind: "qa" as const, qa, run: null, ts: ts(qa.time), key: qa.qa_id ?? `qa-${items.indexOf(qa)}` }));
-    const runEntries = query.trim()
-      ? []
-      : enrichmentRuns.map((run, i) => ({ kind: "improve" as const, qa: null, run, ts: ts(run.created_at), key: run.id ?? `improve-${i}` }));
-    return [...qaEntries, ...runEntries].sort((a, b) => b.ts - a.ts);
-  }, [filtered, enrichmentRuns, query, items]);
+  const timeline = [...filtered].sort((a, b) =>
+    (b.time ? parseServerIso(b.time).getTime() : 0) - (a.time ? parseServerIso(a.time).getTime() : 0));
 
   return (
     <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", gap: 12, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
@@ -296,9 +285,9 @@ function Transcript({ qas, traces, enrichmentRuns }: { qas: Record<string, unkno
         )}
       </div>
 
-      {items.length === 0 && enrichmentRuns.length === 0 ? (
+      {items.length === 0 ? (
         <div style={{ fontSize: 12, color: "rgba(237,236,234,0.45)", textAlign: "center", padding: "16px 0" }}>
-          No transcript entries yet. Send a /remember/entry with this session_id to populate it.
+          No recent transcript entries available. The cache may be unavailable; this does not establish whether memory was saved.
         </div>
       ) : timeline.length === 0 ? (
         <div style={{ fontSize: 12, color: "rgba(237,236,234,0.45)", textAlign: "center", padding: "16px 0" }}>
@@ -306,11 +295,7 @@ function Transcript({ qas, traces, enrichmentRuns }: { qas: Record<string, unkno
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {timeline.map((entry) => (
-            entry.kind === "qa"
-              ? <MessageCard key={entry.key} qa={entry.qa} index={items.indexOf(entry.qa)} />
-              : <ImproveCard key={entry.key} run={entry.run} />
-          ))}
+          {timeline.map((qa, i) => <MessageCard key={qa.qa_id ?? i} qa={qa} index={items.indexOf(qa)} />)}
         </div>
       )}
     </div>
@@ -373,16 +358,15 @@ function MetaRow({ label, value, copyable }: { label: string; value: React.React
   );
 }
 
-function SessionDetailPanel({ detail, refreshNonce }: { detail: SessionDetail; refreshNonce: number }) {
+function SessionDetailPanel({ detail }: { detail: SessionDetail }) {
   const dur = durationSeconds(detail);
-  const tokens = (detail.tokens_in ?? 0) + (detail.tokens_out ?? 0);
+  const tokens = detail.tokens_in === null || detail.tokens_out === null ? null : detail.tokens_in + detail.tokens_out;
   const lastActivity = detail.ended_at ?? detail.last_activity_at;
   const startedFull = formatDate(detail.started_at);
   const startedRel = detail.started_at ? formatRelativeTime(detail.started_at) : null;
   const lastFull = formatDate(lastActivity);
   const lastRel = lastActivity ? formatRelativeTime(lastActivity) : null;
 
-  const { runs: enrichmentRuns, loading: enrichmentLoading } = useGraphEnrichment(detail.dataset_id, detail.session_id, refreshNonce);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -401,13 +385,12 @@ function SessionDetailPanel({ detail, refreshNonce }: { detail: SessionDetail; r
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <StatCard label="Observations" value={String(detail.msg_count ?? 0)} />
         <StatCard label="Tool calls" value={String(detail.tool_calls ?? 0)} />
-        <StatCard label="Tokens" value={tokens.toLocaleString()} />
-        <StatCard label="Cost" value={`$${estimateCostUsd(detail.tokens_in ?? 0, detail.tokens_out ?? 0).toFixed(4)}`} />
+        <StatCard label="Tokens" value={tokens === null ? "Not recorded" : tokens.toLocaleString()} />
+        <StatCard label="Cost" value={detail.cost_usd === null ? "Not recorded" : `$${detail.cost_usd}`} />
         <StatCard label="Duration" value={formatDuration(dur)} />
       </div>
 
-      {/* Session→graph bridge state — the visible improve() signal */}
-      <SelfImprovementCard datasetId={detail.dataset_id} runs={enrichmentRuns} loading={enrichmentLoading} />
+      <MetaRow label="Session effective status" value={detail.effective_status || detail.status || "unknown"} />
 
       {/* Metadata — between KPIs and transcript */}
       <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", gap: 10, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
@@ -424,7 +407,8 @@ function SessionDetailPanel({ detail, refreshNonce }: { detail: SessionDetail; r
 
       {/* Conversation transcript — what the agent actually asked and stored,
           with improve (graph enrichment) entries interleaved */}
-      <Transcript qas={detail.qas ?? []} traces={detail.traces ?? []} enrichmentRuns={enrichmentRuns} />
+      <p style={{ fontSize: 12 }}>Transcript and tools show only the latest 20 Q&amp;As and latest 20 traces, not full history. Cache failures can return empty content without a degradation flag. Counts may cover more entries.</p>
+      <Transcript qas={detail.qas ?? []} traces={detail.traces ?? []} />
 
       <ToolInvocations traces={detail.traces ?? []} />
 
@@ -432,7 +416,25 @@ function SessionDetailPanel({ detail, refreshNonce }: { detail: SessionDetail; r
   );
 }
 
+function SelectedSession({ identity, refreshNonce }: { identity: SessionIdentity; refreshNonce: number }) {
+  const { cogniInstance } = useCogniInstance();
+  const state = useSessionProcessing(cogniInstance, identity, refreshNonce);
+  return <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <p style={{ fontSize: 12, overflowWrap: "anywhere" }}>Session: {identity.sessionId} · Owner: {identity.userId}</p>
+    {state.detailLoading && <div role="status">Loading session…</div>}
+    {state.detailError && <div role="alert">{state.detailError} <button onClick={state.retryDetail}>Retry detail</button></div>}
+    {state.detailStale && <p role="status">Stale session detail retained after a read failure.</p>}
+    <SelfImprovementCard identity={identity} history={state.history} />
+    {state.detail && <SessionDetailPanel detail={state.detail} />}
+  </div>;
+}
+
 export default function SessionsPage() {
+  const { cogniInstance } = useCogniInstance();
+  return <SessionsContent key={cogniInstance?.instanceId ?? "initializing"} />;
+}
+
+function SessionsContent() {
   const { cogniInstance, isInitializing } = useCogniInstance();
 
   const [range, setRange] = useState<TimeRange>("30d");
@@ -440,9 +442,8 @@ export default function SessionsPage() {
   const [stats, setStats] = useState<SessionStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<SessionDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [selected, setSelected] = useState<(SessionIdentity & { instanceId: string }) | null>(null);
+  const selectedId = selected?.instanceId === cogniInstance?.instanceId ? selected?.sessionId : null;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
@@ -469,42 +470,32 @@ export default function SessionsPage() {
       listSessions(cogniInstance, { range, limit: 100 }).then((page) => setSessions(page.sessions)),
       getSessionStats(cogniInstance, range).then(setStats),
     ];
-    if (selectedId) {
-      tasks.push(getSessionDetail(cogniInstance, selectedId).then(setDetail));
-    }
     setRefreshNonce((n) => n + 1);
     await Promise.all(tasks);
     setRefreshing(false);
-  }, [cogniInstance, range, selectedId]);
+  }, [cogniInstance, range]);
 
-  const selectSession = useCallback(async (id: string) => {
-    if (!cogniInstance) return;
-    setSelectedId(id);
-    setDetail(null);
-    setDetailLoading(true);
-    const d = await getSessionDetail(cogniInstance, id);
-    setDetail(d);
-    setDetailLoading(false);
+  const selectSession = useCallback((sessionId: string, userId: string) => {
+    if (cogniInstance) setSelected({ sessionId, userId, instanceId: cogniInstance.instanceId });
   }, [cogniInstance]);
 
-  // Deep link from the Activity log: /sessions?session=<id> opens that
-  // session's detail pane. Applied once per id rather than on every render,
-  // so clicking a different row in the list doesn't get yanked back to the
-  // one named in the URL.
   const searchParams = useSearchParams();
   const deepLinkId = searchParams.get("session");
+  const deepLinkOwner = searchParams.get("owner");
   const appliedDeepLink = useRef<string | null>(null);
   useEffect(() => {
-    if (!cogniInstance || !deepLinkId) return;
-    if (appliedDeepLink.current === deepLinkId) return;
-    appliedDeepLink.current = deepLinkId;
-    void selectSession(deepLinkId);
-  }, [cogniInstance, deepLinkId, selectSession]);
+    if (!cogniInstance || !deepLinkId || !deepLinkOwner) return;
+    const key = JSON.stringify([cogniInstance.instanceId, deepLinkOwner, deepLinkId]);
+    if (appliedDeepLink.current === key) return;
+    appliedDeepLink.current = key;
+    selectSession(deepLinkId, deepLinkOwner);
+  }, [cogniInstance, deepLinkId, deepLinkOwner, selectSession]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <TrackPageView page="Sessions" />
+      {((deepLinkId !== null || deepLinkOwner !== null) && (!deepLinkId || !deepLinkOwner)) && <p role="alert">Session links require both session and owner. Select a session below.</p>}
 
       {/* Header + range filter */}
       <div style={{ padding: "24px 32px 16px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexShrink: 0 }}>
@@ -522,7 +513,7 @@ export default function SessionsPage() {
                 <SkeletonBar width={50} />
               </>
             ) : stats ? (
-              <span>{` · ${stats.sessions} sessions · ${Math.round(stats.success_rate * 100)}% success · $${estimateCostUsd(stats.tokens_in, stats.tokens_out).toFixed(2)}`}</span>
+              <span>{` · ${stats.sessions} sessions · ${Math.round(stats.success_rate * 100)}% success`}</span>
             ) : null}
           </p>
         </div>
@@ -550,7 +541,7 @@ export default function SessionsPage() {
         </div>
       </div>
 
-      {loading && sessions.length === 0 ? (
+      {loading && sessions.length === 0 && !selectedId ? (
         <div style={{ flex: 1, display: "flex", overflow: "hidden", marginInline: 32, marginBottom: 32, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, background: "rgba(0,0,0,0.82)", backdropFilter: "blur(20px)" }}>
           <div style={{ width: 360, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.1)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <div style={{ height: 44, padding: "0 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", flexShrink: 0, display: "flex", alignItems: "center" }}>
@@ -577,7 +568,7 @@ export default function SessionsPage() {
             </div>
           </div>
         </div>
-      ) : sessions.length === 0 ? (
+      ) : sessions.length === 0 && !selectedId ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingInline: 32, paddingBottom: 32 }}>
           <div style={{ flex: 1, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 48 }}>
             <div style={{ width: 56, height: 56, background: "rgba(188,155,255,0.20)", border: "1px solid rgba(188,155,255,0.35)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -598,9 +589,9 @@ export default function SessionsPage() {
             </div>
             <div style={{ flex: 1, overflowY: "auto" }}>
               {sessions.map((s, i) => {
-                const active = s.session_id === selectedId;
+                const active = s.session_id === selectedId && s.user_id === selected?.userId;
                 return (
-                  <div key={s.session_id} onClick={() => selectSession(s.session_id)}
+                  <div key={JSON.stringify([s.user_id, s.session_id])} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectSession(s.session_id, s.user_id); } }} onClick={() => selectSession(s.session_id, s.user_id)}
                     style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: i < sessions.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none", cursor: "pointer", background: active ? "rgba(188,155,255,0.20)" : "transparent", borderLeft: active ? `2px solid ${ACCENT}` : "2px solid transparent" }}
                     onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
                     onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
@@ -608,6 +599,7 @@ export default function SessionsPage() {
                     <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor(s.effective_status || s.status), flexShrink: 0, marginTop: 2, alignSelf: "flex-start" }} />
                     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
                       <span style={{ fontSize: 13, fontWeight: 500, color: "#EDECEA", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{shortId(s.session_id)}</span>
+                      <span style={{ fontSize: 11, overflowWrap: "anywhere" }}>Owner: {s.user_id}</span>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minWidth: 0 }}>
                         <span style={{ fontSize: 11, color: "rgba(237,236,234,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
                           {formatDate(s.last_activity_at || s.started_at)}{s.last_model ? ` · ${s.last_model}` : ""}
@@ -627,17 +619,9 @@ export default function SessionsPage() {
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 8 }}>
                 <span style={{ fontSize: 13, color: "rgba(237,236,234,0.35)" }}>Select a session to inspect its tools, files, and metadata</span>
               </div>
-            ) : detailLoading ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
-                <span style={{ fontSize: 13, color: "rgba(237,236,234,0.35)" }}>Loading session…</span>
-              </div>
-            ) : detail ? (
-              <SessionDetailPanel detail={detail} refreshNonce={refreshNonce} />
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
-                <span style={{ fontSize: 13, color: "rgba(237,236,234,0.35)" }}>Could not load this session.</span>
-              </div>
-            )}
+            ) : selected && cogniInstance ? (
+              <SelectedSession key={JSON.stringify([cogniInstance.instanceId, selected.userId, selected.sessionId])} identity={selected} refreshNonce={refreshNonce} />
+            ) : null}
           </div>
         </div>
       )}

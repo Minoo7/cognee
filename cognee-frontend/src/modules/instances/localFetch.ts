@@ -39,8 +39,9 @@ export default async function localFetch(url: URL | RequestInfo, options: Reques
     .then((response) => {
       console.log(`[LOCAL-API] ← ${method} ${fullUrl} — ${response.status} ${response.statusText}`);
       // Keep the HTTP status so callers can handle conflicts, rate limits, etc.
-      // Authentication failures still follow the local sign-in redirect below.
-      if (!response.ok && response.status !== 401 && response.status !== 403) {
+      // Recording views handle 401/403 themselves; other reads retain the local sign-in redirect.
+      const recordingRead = /^\/v1\/(activity\/pipeline-runs|sessions\/)/.test(urlStr);
+      if (!response.ok && (recordingRead || (response.status !== 401 && response.status !== 403))) {
         return toHttpError(response);
       }
       return handleServerErrors(response, null, false);

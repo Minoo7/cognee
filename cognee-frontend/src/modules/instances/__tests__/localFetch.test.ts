@@ -17,6 +17,13 @@ describe("localFetch errors", () => {
     expect(console.error).not.toHaveBeenCalled();
   });
 
+  it.each([401, 403])("preserves native recording read denial %i without redirect", async (status) => {
+    fetchMock.mockResponseOnce(JSON.stringify({ detail: "denied" }), { status });
+    await expect(localFetch("/v1/activity/pipeline-runs?limit=50")).rejects.toMatchObject({ status });
+    fetchMock.mockResponseOnce(JSON.stringify({ detail: "denied" }), { status });
+    await expect(localFetch("/v1/sessions/A")).rejects.toMatchObject({ status });
+  });
+
   it("still reports a real connection failure", async () => {
     fetchMock.mockRejectOnce(new TypeError("Failed to fetch"));
     await expect(localFetch("/v1/datasets")).rejects.toThrow("No connection to the server.");

@@ -340,8 +340,7 @@ export interface PipelineRun {
   outcome: string | null;
   // The exception class name on a failed row, e.g. "DatasetNotFoundError".
   // This is the ONLY error field `/v1/activity/pipeline-runs` returns; there
-  // is no `error` key, which is why `EnrichmentRun.failure_reason` read null
-  // for every failed burst until this was modelled.
+  // is no `error` key in the native response.
   error_class: string | null;
   // Independently nullable: null means "not measured", 0 means "measured
   // zero" — never conflate the two when summing or displaying these. Rows
@@ -673,35 +672,6 @@ export interface SessionDetail extends SessionRow {
   traces: TraceEntry[];
 }
 
-export interface EnrichmentRun {
-  id: string | null;
-  created_at: string | null;
-  status: "completed" | "running" | "failed";
-  dataset_name: string | null;
-  // Pipeline runs coalesced into this entry — one improve() emits several
-  // memify sub-pipeline runs in a burst.
-  count: number;
-  // Errored sub-runs within the burst. improve()'s stages are best-effort,
-  // so the burst only counts as failed when nothing completed at all.
-  // Not shown to users on partial success — kept for internal KPIs.
-  error_count: number;
-  // Error of the newest errored sub-run, only rendered when the whole burst
-  // failed. Carries `error_class` (the exception class name), which is the
-  // only error field the endpoint returns; it read null for every burst while
-  // this looked for an `error` key the endpoint has never sent.
-  failure_reason: string | null;
-  // Oldest run in the burst — with created_at (newest) this bounds the
-  // burst's wall-clock duration.
-  started_at: string | null;
-}
-
-// improve()'s graph stages (feedback weights, session Q&A persist, enrichment)
-// all record as memify runs — the closest queryable signal for "graph
-// enrichment" until the pod exposes per-session improve state directly.
-const ENRICHMENT_PIPELINE = "memify_pipeline";
-// Runs closer together than this are one improve() burst.
-const ENRICHMENT_COALESCE_MS = 5 * 60_000;
-
 interface ActivityRun {
   id?: string;
   pipeline_name?: string | null;
@@ -721,10 +691,7 @@ interface ActivityRun {
   session_id?: unknown;
 }
 
-/** The three states the graph-enrichment card renders. This was the whole of
- *  `RunStatus` until the runs feed gained states that card cannot express -
- *  see enrichmentBurstStatus for how they fold into these three. */
-export type EnrichmentStatus = EnrichmentRun["status"];
+export type EnrichmentStatus = "completed" | "running" | "failed";
 
 /**
  * What a pipeline row's `status` column says, in the feed's vocabulary.
@@ -772,28 +739,6 @@ export function runStatus(raw: string | undefined): RunStatus {
   if (s.includes("ABANDONED")) return "abandoned";
   if (s.includes("INITIATED")) return "queued";
   return "running";
-}
-
-/**
- * `runStatus` narrowed to the three states the enrichment card renders.
- *
- * That card coalesces memify runs into bursts and distinguishes only
- * running / completed / failed, so the two new states need a home: a queued
- * run has not started yet, and an abandoned one is a stage that will never
- * finish. Folding abandoned into "running" instead would leave the card
- * claiming enrichment is in progress forever, which is the same bug this
- * change removes from the activity table.
- *
- * The queued arm has no producer today and is here for exhaustiveness over
- * `runStatus`'s return type, not as evidence such rows occur: the only writer
- * of INITIATED rows is a dataset reset, and that is only ever called for
- * add_pipeline and cognify_pipeline, never for memify_pipeline.
- */
-function enrichmentBurstStatus(raw: string | undefined): EnrichmentStatus {
-  const status = runStatus(raw);
-  if (status === "queued") return "running";
-  if (status === "abandoned") return "failed";
-  return status;
 }
 
 // The activity endpoint's operation-record fields (`kind`, `operation_name`,
@@ -1117,89 +1062,6 @@ export function dedupeByRunId<T extends ActivityRun>(rows: T[]): T[] {
     }
   }
   return [...byRun.values()];
-}
-
-// Newest burst first.
-/** Page size for the enrichment card. Bounded, because this only ever needs
- *  enough rows to coalesce the recent bursts it renders. */
-const ENRICHMENT_FETCH_LIMIT = 200;
-
-export async function getGraphEnrichmentRuns(
-  instance: CogneeInstance,
-  datasetId: string,
-  sessionId: string | null = null,
-): Promise<EnrichmentRun[]> {
-  try {
-    // Filter server-side. This used to fetch the endpoint's default page and
-    // filter in the browser, which was fine while that table held only
-    // pipeline runs — it now also holds one row per recall/search, so on a
-    // chatty tenant every memify row was crowded off the page and the card
-    // said "No graph enrichment yet" while enrichment was running.
-    // `pipeline_name` also excludes operation records server-side, which is
-    // exactly what this caller wants.
-    const params = new URLSearchParams({
-      pipeline_name: ENRICHMENT_PIPELINE,
-      dataset_id: datasetId,
-      limit: String(ENRICHMENT_FETCH_LIMIT),
-    });
-    // The session page wants the improve runs that bridged ITS session, not
-    // every improve on the dataset (CLO-1105). The pod stamps those runs
-    // since cognee PR 6160 and filters on the stamp.
-    if (sessionId) params.set("session_id", sessionId);
-    const r = await instance.fetch(`/v1/activity/pipeline-runs?${params}`);
-    if (!r.ok) return [];
-    const data: unknown = await r.json();
-    // Still filtered client-side: a pod that predates these query params
-    // ignores them and answers with the unfiltered newest page.
-    const datasetRows = (Array.isArray(data) ? (data as ActivityRun[]) : [])
-      .filter((run) => run.dataset_id === datasetId && run.pipeline_name === ENRICHMENT_PIPELINE);
-    // A pod from before the stamp ignores `session_id` and names no session on
-    // any memify row. Keep the dataset-wide view there, as the card showed
-    // before, rather than nothing; once any row is stamped, another session's
-    // run is dropped even where the pod did not filter.
-    const anyStamped = datasetRows.some((run) => rowSessionIds(run).length > 0);
-    const sessionRows = sessionId && anyStamped
-      ? datasetRows.filter((run) => rowSessionIds(run).includes(sessionId))
-      : datasetRows;
-    const rows = dedupeByRunId(sessionRows).sort((a, b) => isoToMs(b.created_at) - isoToMs(a.created_at));
-
-    const bursts: EnrichmentRun[] = [];
-    let prevTs = 0;
-    for (const row of rows) {
-      const ts = isoToMs(row.created_at);
-      const status = enrichmentBurstStatus(row.status);
-      const current = bursts[bursts.length - 1];
-      if (current && prevTs - ts <= ENRICHMENT_COALESCE_MS) {
-        current.count += 1;
-        if (status === "failed") {
-          current.error_count += 1;
-          current.failure_reason = current.failure_reason ?? row.error ?? row.error_class ?? null;
-        }
-        // improve() runs its stages best-effort, so an errored stage does not
-        // fail the burst: running while any stage runs, completed as long as
-        // any stage completed, failed only when every stage errored.
-        if (status === "running") current.status = "running";
-        else if (status === "completed" && current.status === "failed") current.status = "completed";
-        current.started_at = row.created_at ?? current.started_at;
-      } else {
-        bursts.push({
-          id: row.pipeline_run_id ?? row.id ?? null,
-          created_at: row.created_at ?? null,
-          status,
-          dataset_name: row.dataset_name ?? null,
-          count: 1,
-          error_count: status === "failed" ? 1 : 0,
-          failure_reason: status === "failed" ? (row.error ?? row.error_class ?? null) : null,
-          started_at: row.created_at ?? null,
-        });
-      }
-      prevTs = ts;
-    }
-    return bursts;
-  } catch (err) {
-    console.warn("[getSessions] getGraphEnrichmentRuns failed:", err instanceof Error ? err.message : err);
-    return [];
-  }
 }
 
 export async function getSessionDetail(
