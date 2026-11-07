@@ -27,7 +27,7 @@ it("reads native bare-array pages of 50, encoded session only, with cancellation
   const source = instance(Array.from({ length: 50 }, (_, i) => run({ id: String(i) })));
   const page = await getRecordedRuns(source, { sessionId: "A / B", offset: 50 }, signal);
   expect(page.nextOffset).toBe(100);
-  expect(source.fetch).toHaveBeenCalledWith("/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B", { signal });
+  expect(source.fetch).toHaveBeenCalledWith("/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B", { signal, authErrors: "throw" });
   expect((await getRecordedRuns(instance([]), { offset: 0 }, signal)).nextOffset).toBeNull();
 });
 it("preserves null, zero, noop, unknown and background literally", async () => {

@@ -49,3 +49,9 @@ Public GitHub fetch and remote readback verify published stable
 This verifies publication, not successful final runtime validation. Docker image
 builds, production deployment and MCP lock alignment remain outside the completed
 acceptance. Production was not changed.
+
+## Final assertion correction
+
+The first reviewed-source run passed 277 tests and failed one request-options assertion. All 12 transport cases passed. The recorded-runs assertion now includes its deliberate per-request auth-error opt-in. No application implementation changed in this correction; build and native-browser checks await the repeated validation. The earlier failed receipt remains in Git history.
+
+The maintained TLS guide describes its original isolated Daytona verification. The parent also used a separate OCI development checkout for source preservation, publication and review corrections. Production application configuration and container identities were checked against their baseline. The Mac acted as a controller without a Cognee checkout or database.
