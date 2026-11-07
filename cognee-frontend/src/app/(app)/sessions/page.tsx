@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useCogniInstance } from "@/modules/tenant/TenantProvider";
 import { TrackPageView } from "@/modules/analytics";
+import MarkdownContent from "@/ui/elements/MarkdownContent";
 import SkeletonBar from "@/ui/elements/SkeletonBar";
 import {
   listSessions,
@@ -132,8 +133,10 @@ function MessageCard({ qa, index }: { qa: QAItem; index: number }) {
       overflow: "hidden",
       display: "flex", flexDirection: "column",
     }}>
-      {/* Question header — clickable to reveal/hide the answer */}
       <button
+        type="button"
+        aria-label={canExpand ? `${expanded ? "Collapse" : "Expand"} answer ${index + 1}` : undefined}
+        aria-expanded={canExpand ? expanded : undefined}
         onClick={() => canExpand && setExpanded(v => !v)}
         className={canExpand ? "cursor-pointer" : ""}
         disabled={!canExpand}
@@ -143,7 +146,7 @@ function MessageCard({ qa, index }: { qa: QAItem; index: number }) {
           width: "100%", color: "inherit", font: "inherit",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 5,
             background: meta.bg,
@@ -173,11 +176,11 @@ function MessageCard({ qa, index }: { qa: QAItem; index: number }) {
               <polyline points="6 9 12 15 18 9" />
             </svg>
           )}
-        </div>
-        <div style={{ fontSize: 13, lineHeight: 1.55, color: "#EDECEA", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-          {qa.question || <span style={{ color: "rgba(237,236,234,0.35)", fontStyle: "italic" }}>(no question)</span>}
-        </div>
+        </span>
       </button>
+      <div style={{ padding: "0 14px 12px", minWidth: 0, fontSize: 13, lineHeight: 1.55, color: "#EDECEA", wordBreak: "break-word" }}>
+        {qa.question ? <MarkdownContent text={qa.question} /> : <span style={{ color: "rgba(237,236,234,0.35)", fontStyle: "italic" }}>(no question)</span>}
+      </div>
 
       {/* Collapsible answer */}
       {canExpand && expanded && (
@@ -215,8 +218,8 @@ function MessageCard({ qa, index }: { qa: QAItem; index: number }) {
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.55, color: "rgba(237,236,234,0.85)", whiteSpace: "pre-wrap", wordBreak: "break-word", fontVariantNumeric: "tabular-nums" }}>
-              {qa.answer}
+            <div style={{ fontSize: 13, lineHeight: 1.55, color: "rgba(237,236,234,0.85)", minWidth: 0, wordBreak: "break-word", fontVariantNumeric: "tabular-nums" }}>
+              <MarkdownContent text={qa.answer ?? ""} />
             </div>
           </div>
         </>
