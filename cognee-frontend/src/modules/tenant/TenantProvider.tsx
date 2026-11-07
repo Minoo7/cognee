@@ -1,8 +1,2 @@
-/**
- * Open-source stub — re-exports hooks from TenantContext.
- *
- * The SaaS version contains the full TenantProvider with Auth0/Stripe
- * initialization. ~15 files import useCogniInstance from this path,
- * so this stub ensures they resolve correctly.
- */
+/** Shared import path for tenant hooks in the open-source application. */
 export { useTenant, useCogniInstance } from "./TenantContext";

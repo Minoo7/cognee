@@ -1,0 +1,10 @@
+services:
+  cognee:
+    image: sha256:94216bc9e1e9f2ef785740f62dc49e94d259f460e2fc1f4fe338f5c2b71f9920
+    build: !reset null
+  cognee-mcp:
+    image: sha256:231f3f01d3f687b85fbc8b37e60d5738b35aee583fd06f134eebb174a0c34598
+    build: !reset null
+  frontend:
+    image: sha256:09421393179347a11b4d9e115abd14232e1832cc160f7af1c83c1cb760f619b5
+    build: !reset null

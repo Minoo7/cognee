@@ -513,6 +513,20 @@ def start_api_server(host: str = "0.0.0.0", port: int = 8000):
     """
     import socket
 
+    if os.environ.get("TLS_PORT"):
+        import asyncio
+
+        from cognee.api.native_tls import listeners_from_env, serve
+
+        asyncio.run(
+            serve(
+                app,
+                listeners_from_env(host, port),
+                grace=int(os.environ.get("DRAIN_SECONDS", "300")),
+            )
+        )
+        return
+
     try:
         logger.info("Starting server at %s:%s", host, port)
 

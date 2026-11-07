@@ -1,0 +1,10 @@
+[Unit]
+Description=Reconcile Cognee native TLS certificates after a failed renewal hook
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=RENEWED_LINEAGE=/etc/letsencrypt/live/cognee.planasolutions.ai
+ExecStart=/etc/letsencrypt/renewal-hooks/deploy/cognee-native-tls
+TimeoutStartSec=120

@@ -10,7 +10,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 
+from cognee.base_config import get_base_config
 from cognee.exceptions import CogneeApiError
+from cognee.modules.users.methods.create_default_user import DEFAULT_USER_EMAIL
 from cognee.modules.users.methods.get_authenticated_user import get_authenticated_user
 from cognee.modules.users.methods.get_visible_user_ids import get_visible_user_ids
 from cognee.modules.users.models import User
@@ -393,11 +395,12 @@ def get_activity_router() -> APIRouter:
         now = datetime.now(timezone.utc)
         live_cutoff = now - timedelta(minutes=30)
 
+        default_user_email = get_base_config().default_user_email or DEFAULT_USER_EMAIL
         agents = []
         for u in all_users:
             email = u.email or ""
             is_agent = email.endswith("@cognee.agent")
-            is_default = email == "default_user@example.com"
+            is_default = email == default_user_email
 
             # Parse agent type from email
             # Internal email format: "sanitized-name+{parent_user_id}@cognee.agent"

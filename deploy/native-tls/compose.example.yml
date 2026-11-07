@@ -1,0 +1,40 @@
+# Source example only; no production deployment or Docker build was verified.
+# Run from this directory with an operator-created .env and tls/current pair.
+services:
+  api:
+    image: cognee-selfhost-api-native:1.6.7
+    env_file: .env
+    environment:
+      BIND_ADDRESS: 0.0.0.0
+      HTTP_PORT: "8000"
+      TLS_PORT: "8443"
+      REQUIRE_AUTHENTICATION: "true"
+      ENABLE_BACKEND_ACCESS_CONTROL: "true"
+      AUTH_TOKEN_COOKIE_SECURE: "true"
+    stop_grace_period: 330s
+    ports: ["127.0.0.1:8000:8000", "127.0.0.1:8443:8443"]
+    volumes:
+      - ./tls:/tls:ro
+      - api-storage:/cognee-storage
+  mcp:
+    image: cognee-selfhost-mcp-native:1.6.7
+    env_file: .env
+    environment:
+      TRANSPORT_MODE: http
+      HTTP_PORT: "8001"
+      TLS_PORT: "8444"
+      API_URL: http://api:8000
+      MCP_ALLOWED_HOSTS: localhost:*,127.0.0.1:*
+      MCP_CORS_ALLOW_ORIGINS: https://localhost:3443
+    stop_grace_period: 330s
+    ports: ["127.0.0.1:8001:8001", "127.0.0.1:8444:8444"]
+    volumes: ["./tls:/tls:ro"]
+  frontend:
+    image: cognee-selfhost-ui-native:1.6.7
+    environment:
+      COGNEE_BACKEND_URL: https://localhost:8443
+    stop_grace_period: 330s
+    ports: ["127.0.0.1:3000:3000", "127.0.0.1:3443:3443"]
+    volumes: ["./tls:/tls:ro"]
+volumes:
+  api-storage:

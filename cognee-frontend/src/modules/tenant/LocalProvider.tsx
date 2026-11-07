@@ -1,16 +1,95 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Tenant } from "./types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TenantContext, localInstance } from "./TenantContext";
 import { tokens } from "@/ui/theme/tokens";
+import { getLocalApiUrl } from "@/modules/users/getLocalApiUrl";
+import { UserContext, type AvailableTenant } from "@/modules/users/UserContext";
+import NameWorkspaceModal from "@/ui/layout/NameWorkspaceModal";
+import createWorkspace from "./createWorkspace";
+import {
+  loadLocalTenantState,
+  LocalTenantApiError,
+  selectLocalTenant,
+  type LocalTenantState,
+} from "./localTenantApi";
 
-const localApiUrl = process.env.NEXT_PUBLIC_LOCAL_API_URL || "http://localhost:8000";
+type ProviderState =
+  | { kind: "loading" }
+  | { kind: "ready"; value: LocalTenantState | null }
+  | { kind: "error"; message: string };
 
 export function LocalProvider({ children }: { children: React.ReactNode }) {
-  const [tenant, setTenant] = useState<Tenant | null>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const localApiUrl = getLocalApiUrl();
+  const [state, setState] = useState<ProviderState>({ kind: "loading" });
+  const [workspaceName, setWorkspaceName] = useState("");
+  const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
+  const [workspaceSubmitting, setWorkspaceSubmitting] = useState(false);
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
+  const tenant = state.kind === "ready" ? state.value?.tenant ?? null : null;
+  const availableTenants = useMemo<AvailableTenant[]>(
+    () => state.kind === "ready" ? state.value?.availableTenants ?? [] : [],
+    [state],
+  );
+  const isInitializing = state.kind === "loading";
+  const error = state.kind === "error" ? state.message : null;
+
+  // Memoized: consumers key effects off availableTenants, so a fresh array on
+  // every render would re-fire them on unrelated re-renders.
+  const userContextValue = useMemo(
+    () => ({
+      userMe: null,
+      isLoading: isInitializing,
+      isUserMeError: false,
+      markWelcomeSeen: async () => {},
+      markOnboardingComplete: async () => {},
+      dismissFeatureAnnouncement: async () => {},
+      setSessionRecordingConsent: async () => {},
+      updateProfileName: async () => {},
+      availableTenants,
+      isLoadingTenants: isInitializing,
+      isTenantsError: state.kind === "error",
+      refetchTenants: () => {},
+      setAvailableTenantsOptimistic: () => {},
+    }),
+    [availableTenants, isInitializing, state.kind],
+  );
+
+  const switchTenant = useCallback(
+    async (tenantId: string) => {
+      try {
+        await selectLocalTenant(localApiUrl, tenantId);
+        window.location.reload();
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Could not switch workspace";
+        setState({ kind: "error", message });
+      }
+    },
+    [localApiUrl],
+  );
+
+  const requestCreateWorkspace = useCallback(() => {
+    setWorkspaceName("");
+    setWorkspaceError(null);
+    setWorkspaceModalOpen(true);
+  }, []);
+
+  const closeWorkspaceModal = useCallback(() => {
+    setWorkspaceModalOpen(false);
+    setWorkspaceError(null);
+  }, []);
+
+  const submitWorkspace = useCallback(async () => {
+    setWorkspaceSubmitting(true);
+    setWorkspaceError(null);
+    try {
+      await createWorkspace(workspaceName);
+      window.location.reload();
+    } catch (err) {
+      setWorkspaceError(err instanceof Error ? err.message : "Could not create workspace");
+      setWorkspaceSubmitting(false);
+    }
+  }, [workspaceName]);
 
   useEffect(() => {
     let cancelled = false;
@@ -18,44 +97,26 @@ export function LocalProvider({ children }: { children: React.ReactNode }) {
     async function init() {
       // Guard: don't check auth if we're already on the login page (avoids redirect loop)
       if (typeof window !== "undefined" && window.location.pathname === "/local-login") {
-        setIsInitializing(false);
+        setState({ kind: "ready", value: null });
         return;
       }
 
       try {
-        // Check if we're authenticated with the local backend
-        const meResponse = await global.fetch(`${localApiUrl}/api/v1/users/me`, {
-          credentials: "include",
-        });
+        const localTenantState = await loadLocalTenantState(localApiUrl);
+        if (cancelled) return;
+        setState({ kind: "ready", value: localTenantState });
+      } catch (err) {
+        if (cancelled) return;
 
-        if (meResponse.status === 401 || meResponse.status === 403) {
-          // Not authenticated — redirect to local login
+        if (err instanceof LocalTenantApiError && (err.status === 401 || err.status === 403)) {
           window.location.href = "/local-login";
           return;
         }
 
-        if (!meResponse.ok) {
-          throw new Error(`Local backend returned ${meResponse.status}: ${meResponse.statusText}`);
-        }
-
-        if (cancelled) return;
-
-        // Authenticated — set up the local instance
-        setTenant({ tenant_id: "local", tenant_name: "local" });
-      } catch (err) {
-        if (cancelled) return;
-
-        // Network error — backend probably not running
-        if (err instanceof TypeError) {
-          setError("Cannot connect to local Cognee backend at " + localApiUrl + ". Is it running?");
-        } else {
-          const message = err instanceof Error ? err.message : "Failed to connect to local backend";
-          setError(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsInitializing(false);
-        }
+        const message = err instanceof TypeError
+          ? "Cannot connect to local Cognee backend at " + localApiUrl + ". Is it running?"
+          : err instanceof Error ? err.message : "Failed to connect to local backend";
+        setState({ kind: "error", message });
       }
     }
 
@@ -64,7 +125,7 @@ export function LocalProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [localApiUrl]);
 
   if (error && !isInitializing) {
     return (
@@ -73,29 +134,46 @@ export function LocalProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <TenantContext.Provider value={{
-      tenant,
-      cogniInstance: localInstance,
-      localInstance,
-      serviceUrl: localApiUrl,
-      apiKey: "",
-      isInitializing,
-      tenantReady: true,
-      podUnreachable: false,
-      // Local mode runs a single always-on instance — nothing ever sleeps.
-      wakeState: "idle",
-      wakeStartedAt: null,
-      error,
-      statusMessage: null,
-      switchTenant: () => {},
-      planType: null,
-      hasAccess: true,
-      requestCreateWorkspace: () => {},
-      nameModalOpen: false,
-      releaseLoader: () => {},
-    }}>
-      {children}
-    </TenantContext.Provider>
+    // UserContext sits above TenantContext because useTenant() reads
+    // availableTenants out of it to derive isOwner/isPersonal. The tenant list
+    // is the only field carrying real information here; the rest stay inert,
+    // since local mode has no cloud user service to load them from.
+    <UserContext.Provider value={userContextValue}>
+      <TenantContext.Provider value={{
+        tenant,
+        cogniInstance: localInstance,
+        localInstance,
+        serviceUrl: localApiUrl,
+        apiKey: "",
+        isInitializing,
+        tenantReady: true,
+        podUnreachable: false,
+        wakeState: "idle",
+        wakeStartedAt: null,
+        error,
+        statusMessage: null,
+        switchTenant,
+        planType: null,
+        hasAccess: true,
+        requestCreateWorkspace,
+        nameModalOpen: workspaceModalOpen,
+        releaseLoader: () => {},
+      }}>
+        {children}
+        {workspaceModalOpen && (
+          <NameWorkspaceModal
+            name={workspaceName}
+            setName={setWorkspaceName}
+            submitting={workspaceSubmitting}
+            error={workspaceError}
+            onSubmit={submitWorkspace}
+            onClose={closeWorkspaceModal}
+            mode="local"
+            isFree={true}
+          />
+        )}
+      </TenantContext.Provider>
+    </UserContext.Provider>
   );
 }
 

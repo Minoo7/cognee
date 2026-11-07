@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useCurrentUser } from "@/modules/users/useCurrentUser";
 import { useUser } from "@/modules/users/UserContext";
 import { displayName } from "@/modules/users/profileName";
-import getLocalUser from "@/modules/users/getLocalUser";
-import CogneeUser from "@/modules/users/CogneeUser";
 import isCloudEnvironment from "@/utils/isCloudEnvironment";
 
 import Image from "next/image";
@@ -80,18 +78,12 @@ function PlusIcon() {
 }
 
 export default function TopBar() {
-  const [localUser, setLocalUser] = useState<CogneeUser>();
   const cloud = isCloudEnvironment();
-  const { data: cloudUser } = useCurrentUser(cloud);
-  const user = cloud ? cloudUser : localUser;
+  const { data: user } = useCurrentUser();
   const { userMe } = useUser();
   const pathname = usePathname();
   const { workspace, workspaces, setWorkspace } = useFilter();
   const { requestCreateWorkspace, availableTenants, wakeState, tenant } = useTenant();
-
-  useEffect(() => {
-    if (!cloud) getLocalUser().then((u) => { if (u) setLocalUser(u); });
-  }, [cloud]);
 
   // Derive page label
   const basePath = "/" + (pathname.split("/").filter(Boolean)[0] || "");
@@ -185,21 +177,19 @@ export default function TopBar() {
               </div>
             );
           })}
-          {cloud && (
-            <>
-              <div style={{ height: 1, background: "rgba(255,255,255,0.1)", margin: "4px 0" }} />
-              <div
-                onClick={requestCreateWorkspace}
-                className="cursor-pointer"
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 6 }}
-              >
-                <PlusIcon />
-                <span style={{ fontSize: 13, fontWeight: 500, color: "#6510F4" }}>
-                  Create new workspace
-                </span>
-              </div>
-            </>
-          )}
+          <>
+            <div style={{ height: 1, background: "rgba(255,255,255,0.1)", margin: "4px 0" }} />
+            <div
+              onClick={requestCreateWorkspace}
+              className="cursor-pointer"
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 6 }}
+            >
+              <PlusIcon />
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#6510F4" }}>
+                Create new workspace
+              </span>
+            </div>
+          </>
         </Dropdown>
 
         {/* 2. Page name */}

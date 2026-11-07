@@ -37,12 +37,12 @@ describe("useCurrentUser", () => {
     expect(mockGetCurrentUserProfile).toHaveBeenCalledTimes(1);
   });
 
-  it("does not read the cloud profile in local mode", () => {
+  it("reads the authenticated local profile in local mode", async () => {
     mockIsCloudEnvironment.mockReturnValue(false);
 
     const { result } = renderHook(() => useCurrentUser(), { wrapper: Wrapper });
 
-    expect(result.current.fetchStatus).toBe("idle");
-    expect(mockGetCurrentUserProfile).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGetCurrentUserProfile).toHaveBeenCalledTimes(1);
   });
 });
