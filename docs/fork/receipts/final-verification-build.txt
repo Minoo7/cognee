@@ -1,0 +1,96 @@
+
+> cognee-frontend@1.0.0 build
+> NEXT_TELEMETRY_DISABLED=1 next build --webpack
+
+▲ Next.js 16.3.8 (webpack)
+✓ Running next.config.ts took 17ms
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+⚠ Compiled with warnings in 786ms
+
+../../worktree/cognee-frontend/node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+A Node.js API is used (process.cwd at line: 1044) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+../../worktree/cognee-frontend/node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+../../worktree/cognee-frontend/node_modules/next/dist/esm/server/request/connection.js
+../../worktree/cognee-frontend/node_modules/next/dist/esm/server/web/exports/index.js
+../../worktree/cognee-frontend/node_modules/next/dist/esm/api/server.js
+
+../../worktree/cognee-frontend/node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+A Node.js API is used (process.cwd at line: 1044) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+../../worktree/cognee-frontend/node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+../../worktree/cognee-frontend/node_modules/next/dist/esm/server/request/connection.js
+../../worktree/cognee-frontend/node_modules/next/dist/esm/server/web/exports/index.js
+../../worktree/cognee-frontend/node_modules/next/dist/esm/api/server.js
+
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ Compiled successfully in 20.5s
+  Running TypeScript ...
+  Finished TypeScript in 7.5s ...
+  Collecting page data using 2 workers ...
+  Generating static pages using 2 workers (0/8) ...
+  Generating static pages using 2 workers (2/8) 
+  Generating static pages using 2 workers (4/8) 
+  Generating static pages using 2 workers (6/8) 
+✓ Generating static pages using 2 workers (8/8) in 243ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /activity
+├ ƒ /analytics
+├ ƒ /api-keys
+├ ƒ /api/local-signout
+├ ƒ /api/log
+├ ƒ /api/runtime-config
+├ ƒ /api/schema-provenance
+├ ƒ /api/schema/inventory
+├ ƒ /api/schema/provenance
+├ ƒ /api/visualize
+├ ƒ /business
+├ ƒ /connections
+├ ƒ /dashboard
+├ ƒ /datasets
+├ ƒ /datasets/[id]
+├ ƒ /email-verified
+├ ƒ /graph-models
+├ ƒ /graph-models/[id]
+├ ○ /icon.svg
+├ ƒ /integrations
+├ ƒ /integrations/slack
+├ ƒ /knowledge-graph
+├ ƒ /local-login
+├ ƒ /memory-gap-analysis
+├ ƒ /onboarding
+├ ƒ /releases
+├ ƒ /search
+├ ƒ /sessions
+├ ƒ /settings
+├ ƒ /skills
+├ ƒ /waitlist
+└ ƒ /welcome
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

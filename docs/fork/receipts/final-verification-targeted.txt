@@ -1,0 +1,22 @@
+PASS src/modules/sessions/__tests__/sessionOperations.test.ts
+  ✓ two sessions sharing a dataset: only A has recorded processing (1 ms)
+  ✓ requires the composite owner, retains datasetless and multi-session links
+  ✓ collapses only explicit pipeline run state across pages, never parent/child or time bursts (6 ms)
+  ✓ reads native bare-array pages of 50, encoded session only, with cancellation (2 ms)
+  ✓ preserves null, zero, noop, unknown and background literally (1 ms)
+  ✓ rejects invalid native schema {}
+  ✓ rejects invalid native schema [{"id":"row-1","kind":"operation","pipeline_name":null,"status":null,"operation_name":"improve","dataset_id":"same-dataset","dataset_name":"Shared","owner_id":"owner","owner_email":null,"created_at":"2026-01-01T00:00:00Z","pipeline_run_id":"run-1","origin":"sdk","outcome":"succeeded","background":true,"error_class":null,"tokens_out":0,"embedding_tokens":null,"started_at":null,"ended_at":null,"user_id":"owner","session_ids":["A"],"parent_operation_id":null}] (1 ms)
+  ✓ rejects invalid native schema [{"id":"row-1","kind":"operation","pipeline_name":null,"status":null,"operation_name":"improve","dataset_id":"same-dataset","dataset_name":"Shared","owner_id":"owner","owner_email":null,"created_at":"2026-01-01T00:00:00Z","pipeline_run_id":"run-1","origin":"sdk","outcome":"succeeded","background":true,"error_class":null,"tokens_in":null,"tokens_out":0,"embedding_tokens":null,"started_at":null,"ended_at":null,"user_id":"owner","parent_operation_id":null}]
+  ✓ rejects invalid native schema [{"id":"row-1","kind":"operation","pipeline_name":null,"status":42,"operation_name":"improve","dataset_id":"same-dataset","dataset_name":"Shared","owner_id":"owner","owner_email":null,"created_at":"2026-01-01T00:00:00Z","pipeline_run_id":"run-1","origin":"sdk","outcome":"succeeded","background":true,"error_class":null,"tokens_in":null,"tokens_out":0,"embedding_tokens":null,"started_at":null,"ended_at":null,"user_id":"owner","session_ids":["A"],"parent_operation_id":null}]
+  ✓ throws status 401 instead of empty history (1 ms)
+  ✓ throws status 403 instead of empty history (1 ms)
+  ✓ throws status 500 instead of empty history
+  ✓ rejects another owner's detail for an identical session ID (4 ms)
+  ✓ keeps operation row IDs separate from pipeline run IDs (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       14 passed, 14 total
+Snapshots:   0 total
+Time:        0.4 s, estimated 1 s
+Ran all test suites within paths "src/modules/sessions/__tests__/sessionOperations.test.ts".
+Test results written to: ../../../../../tmp/cognee-activity-acceptance-14b3f6f/verification-d424/targeted.json

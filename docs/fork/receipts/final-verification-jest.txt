@@ -1,15 +1,14 @@
-PASS src/utils/__tests__/useBoundedPoll.test.ts
-PASS src/services/http/__tests__/errors.test.ts
-PASS src/modules/datasets/__tests__/describeTextBlob.test.ts
-PASS src/utils/__tests__/sessionRoutes.test.ts
 PASS src/app/(app)/sessions/partials/__tests__/useSessionProcessing.test.tsx
 PASS src/app/(app)/activity/__tests__/activity.test.tsx
 PASS src/ui/layout/__tests__/FilterContext.test.tsx
 PASS src/app/(app)/sessions/__tests__/recordedSession.test.tsx
+PASS src/utils/__tests__/useBoundedPoll.test.ts
 PASS src/ui/layout/__tests__/TopBarUserName.test.tsx
-PASS src/ui/layout/__tests__/NameWorkspaceModal.test.tsx
+PASS src/modules/instances/__tests__/localFetch.test.ts
+PASS src/modules/sessions/__tests__/sessionOperations.test.ts
 PASS src/modules/users/__tests__/useCurrentUser.test.tsx
 PASS src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx
+PASS src/ui/layout/__tests__/NameWorkspaceModal.test.tsx
 PASS src/app/api/__tests__/authenticatedProxies.test.ts
   ● Console
 
@@ -62,39 +61,18 @@ PASS src/app/api/__tests__/authenticatedProxies.test.ts
       at error (src/app/api/schema/inventory/route.ts:34:15)
       at src/app/api/__tests__/authenticatedProxies.test.ts:40:20
 
-PASS src/modules/config/__tests__/runtimeConfig.test.ts
-PASS src/modules/sessions/__tests__/activityRows.test.ts
-PASS src/modules/instances/__tests__/localFetch.test.ts
-FAIL src/modules/sessions/__tests__/sessionOperations.test.ts
-  ● reads native bare-array pages of 50, encoded session only, with cancellation
-
-    expect(jest.fn()).toHaveBeenCalledWith(...expected)
-
-    - Expected
-    + Received
-
-      "/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B",
-      Object {
-    +   "authErrors": "throw",
-        "signal": AbortSignal {},
-      },
-
-    Number of calls: 1
-
-      28 |   const page = await getRecordedRuns(source, { sessionId: "A / B", offset: 50 }, signal);
-      29 |   expect(page.nextOffset).toBe(100);
-    > 30 |   expect(source.fetch).toHaveBeenCalledWith("/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B", { signal });
-         |                        ^
-      31 |   expect((await getRecordedRuns(instance([]), { offset: 0 }, signal)).nextOffset).toBeNull();
-      32 | });
-      33 | it("preserves null, zero, noop, unknown and background literally", async () => {
-
-      at Object.toHaveBeenCalledWith (src/modules/sessions/__tests__/sessionOperations.test.ts:30:24)
-
-PASS src/modules/sessions/__tests__/listSearchSessions.test.ts
+PASS src/services/http/__tests__/errors.test.ts
 PASS src/modules/users/__tests__/getUser.test.ts
-PASS src/modules/sessions/__tests__/envNumber.test.ts
 PASS src/modules/config/__tests__/serverRuntimeConfig.test.ts
+PASS src/modules/sessions/__tests__/activityRows.test.ts
+PASS src/modules/sessions/__tests__/normalizeSessionRows.test.ts
+PASS src/modules/tenant/__tests__/localTenantApi.test.ts
+PASS src/modules/sessions/__tests__/listSearchSessions.test.ts
+PASS src/modules/datasets/__tests__/describeTextBlob.test.ts
+PASS src/modules/config/__tests__/runtimeConfig.test.ts
+PASS src/modules/sessions/__tests__/envNumber.test.ts
+PASS src/utils/__tests__/sessionRoutes.test.ts
+PASS src/modules/users/__tests__/getLocalApiUrl.test.ts
 PASS src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts
   ● Console
 
@@ -111,7 +89,6 @@ PASS src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts
 
       at warn (src/modules/sessions/getSessions.ts:473:15)
 
-PASS src/modules/users/__tests__/getLocalUser.test.ts
 PASS src/modules/tenant/__tests__/createWorkspace.test.ts
   ● Console
 
@@ -125,41 +102,11 @@ PASS src/modules/tenant/__tests__/createWorkspace.test.ts
 
       at log (src/modules/instances/localFetch.ts:43:15)
 
-PASS src/modules/tenant/__tests__/localTenantApi.test.ts
-PASS src/modules/users/__tests__/getLocalApiUrl.test.ts
-PASS src/modules/sessions/__tests__/normalizeSessionRows.test.ts
+PASS src/modules/users/__tests__/getLocalUser.test.ts
 
-Summary of all failing tests
-FAIL src/modules/sessions/__tests__/sessionOperations.test.ts
-  ● reads native bare-array pages of 50, encoded session only, with cancellation
-
-    expect(jest.fn()).toHaveBeenCalledWith(...expected)
-
-    - Expected
-    + Received
-
-      "/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B",
-      Object {
-    +   "authErrors": "throw",
-        "signal": AbortSignal {},
-      },
-
-    Number of calls: 1
-
-      28 |   const page = await getRecordedRuns(source, { sessionId: "A / B", offset: 50 }, signal);
-      29 |   expect(page.nextOffset).toBe(100);
-    > 30 |   expect(source.fetch).toHaveBeenCalledWith("/v1/activity/pipeline-runs?limit=50&offset=50&session_id=A+%2F+B", { signal });
-         |                        ^
-      31 |   expect((await getRecordedRuns(instance([]), { offset: 0 }, signal)).nextOffset).toBeNull();
-      32 | });
-      33 | it("preserves null, zero, noop, unknown and background literally", async () => {
-
-      at Object.toHaveBeenCalledWith (src/modules/sessions/__tests__/sessionOperations.test.ts:30:24)
-
-
-Test Suites: 1 failed, 26 passed, 27 total
-Tests:       1 failed, 277 passed, 278 total
+Test Suites: 27 passed, 27 total
+Tests:       278 passed, 278 total
 Snapshots:   0 total
-Time:        4.853 s
+Time:        3.362 s, estimated 4 s
 Ran all test suites within paths "src/modules/sessions/__tests__/activityRows.test.ts", "src/modules/sessions/__tests__/envNumber.test.ts", "src/modules/sessions/__tests__/listSearchSessions.test.ts", "src/modules/sessions/__tests__/normalizeSessionRows.test.ts", "src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts", "src/modules/sessions/__tests__/sessionOperations.test.ts", "src/modules/config/__tests__/runtimeConfig.test.ts", "src/modules/config/__tests__/serverRuntimeConfig.test.ts", "src/app/(app)/activity/__tests__/activity.test.tsx", "src/app/(app)/sessions/__tests__/recordedSession.test.tsx", "src/app/(app)/sessions/partials/__tests__/useSessionProcessing.test.tsx", "src/modules/instances/__tests__/localFetch.test.ts", "src/modules/tenant/__tests__/localTenantApi.test.ts", "src/modules/tenant/__tests__/createWorkspace.test.ts", "src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx", "src/modules/users/__tests__/getLocalApiUrl.test.ts", "src/modules/users/__tests__/getLocalUser.test.ts", "src/modules/users/__tests__/getUser.test.ts", "src/modules/users/__tests__/useCurrentUser.test.tsx", "src/app/api/__tests__/authenticatedProxies.test.ts", "src/ui/layout/__tests__/NameWorkspaceModal.test.tsx", "src/ui/layout/__tests__/TopBarUserName.test.tsx", "src/ui/layout/__tests__/FilterContext.test.tsx", "src/modules/datasets/__tests__/describeTextBlob.test.ts", "src/services/http/__tests__/errors.test.ts", "src/utils/__tests__/sessionRoutes.test.ts", "src/utils/__tests__/useBoundedPoll.test.ts".
-Test results written to: ../../../../../tmp/cognee-activity-acceptance-14b3f6f/verification-311/jest.json
+Test results written to: ../../../../../tmp/cognee-activity-acceptance-14b3f6f/verification-d424/jest.json

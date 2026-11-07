@@ -1,0 +1,232 @@
+{
+  "tested_commit": "d424820014404663d5562186858430c6d15c68d7",
+  "natural": {
+    "user_id": "ed22adff-e2e7-449b-900d-4927ff2ceb3d",
+    "dataset_id": "9bd028b9-9517-504d-bfb7-c353028e3ccb",
+    "sessions": [
+      "activity-A-14b3f6f",
+      "activity-B-14b3f6f"
+    ],
+    "detail_omits_effective_status": true,
+    "same_dataset": true,
+    "a_rows": [
+      {
+        "id": "29c79aa0-e4dc-495a-a5fb-94e777ac2371",
+        "kind": "operation",
+        "pipeline_name": null,
+        "status": null,
+        "dataset_id": "9bd028b9-9517-504d-bfb7-c353028e3ccb",
+        "dataset_name": "activity-local-14b3f6f",
+        "owner_id": "ed22adff-e2e7-449b-900d-4927ff2ceb3d",
+        "owner_email": "activity-owner-verified-14b3f6f@example.com",
+        "created_at": "2026-11-07T17:01:04.040221",
+        "pipeline_run_id": "948df6ac-0c38-4ed6-9729-5aa8bf654eb0",
+        "operation_name": "improve",
+        "origin": "api",
+        "outcome": "failed",
+        "background": false,
+        "error_class": "ValueError",
+        "tokens_in": 0,
+        "tokens_out": 0,
+        "embedding_tokens": 0,
+        "started_at": "2026-11-07T17:01:03.322535",
+        "ended_at": "2026-11-07T17:01:04.036724",
+        "user_id": "ed22adff-e2e7-449b-900d-4927ff2ceb3d",
+        "session_ids": [
+          "activity-A-14b3f6f"
+        ],
+        "parent_operation_id": null
+      }
+    ],
+    "b_rows": [],
+    "improve_http_status": 409,
+    "improve_error": "ValueError: offline BAAI/bge-small-en-v1.5 unavailable; successful graph improvement NOT established"
+  },
+  "http_results": [
+    {
+      "label": "unauthenticated activity",
+      "method": "GET",
+      "path": "/api/v1/activity/pipeline-runs",
+      "status": 401
+    },
+    {
+      "label": "register owner",
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "status": 201
+    },
+    {
+      "label": "register outsider",
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "status": 201
+    },
+    {
+      "label": "create shared-session dataset",
+      "method": "POST",
+      "path": "/api/v1/datasets",
+      "status": 200
+    },
+    {
+      "label": "typed Q/A activity-A-14b3f6f",
+      "method": "POST",
+      "path": "/api/v1/remember/entry",
+      "status": 200
+    },
+    {
+      "label": "typed Q/A activity-B-14b3f6f",
+      "method": "POST",
+      "path": "/api/v1/remember/entry",
+      "status": 200
+    },
+    {
+      "label": "list naturally captured sessions",
+      "method": "GET",
+      "path": "/api/v1/sessions?range=all",
+      "status": 200
+    },
+    {
+      "label": "natural detail activity-A-14b3f6f",
+      "method": "GET",
+      "path": "/api/v1/sessions/activity-A-14b3f6f",
+      "status": 200
+    },
+    {
+      "label": "natural detail activity-B-14b3f6f",
+      "method": "GET",
+      "path": "/api/v1/sessions/activity-B-14b3f6f",
+      "status": 200
+    },
+    {
+      "label": "explicit improve A, no providers",
+      "method": "POST",
+      "path": "/api/v1/improve",
+      "status": 409
+    },
+    {
+      "label": "natural activity all",
+      "method": "GET",
+      "path": "/api/v1/activity/pipeline-runs?limit=500",
+      "status": 200
+    },
+    {
+      "label": "natural activity A",
+      "method": "GET",
+      "path": "/api/v1/activity/pipeline-runs?limit=500&session_id=activity-A-14b3f6f",
+      "status": 200
+    },
+    {
+      "label": "natural activity B",
+      "method": "GET",
+      "path": "/api/v1/activity/pipeline-runs?limit=500&session_id=activity-B-14b3f6f",
+      "status": 200
+    },
+    {
+      "label": "outsider dataset denied",
+      "method": "GET",
+      "path": "/api/v1/activity/pipeline-runs?dataset_id=9bd028b9-9517-504d-bfb7-c353028e3ccb",
+      "status": 403
+    },
+    {
+      "label": "outsider unscoped isolated",
+      "method": "GET",
+      "path": "/api/v1/activity/pipeline-runs?limit=500",
+      "status": 200
+    },
+    {
+      "label": "unknown session empty",
+      "method": "GET",
+      "path": "/api/v1/activity/pipeline-runs?session_id=nonexistent-14b3f6f",
+      "status": 200
+    },
+    {
+      "label": "missing session detail",
+      "method": "GET",
+      "path": "/api/v1/sessions/nonexistent-14b3f6f",
+      "status": 404
+    },
+    {
+      "label": "invalid pagination",
+      "method": "GET",
+      "path": "/api/v1/activity/pipeline-runs?limit=0",
+      "status": 400
+    }
+  ],
+  "contract_http_results": [
+    {
+      "case": "outsider tenant users",
+      "path": "/api/v1/activity/users",
+      "status": 403
+    },
+    {
+      "case": "owner tenant users",
+      "path": "/api/v1/activity/users",
+      "status": 200
+    },
+    {
+      "case": "natural dataset-only all-skipped no-op",
+      "status": 200
+    },
+    {
+      "case": "seeded unknown/null/zero API contract"
+    },
+    {
+      "case": "natural noop row"
+    },
+    {
+      "case": "B still isolated after same-dataset noop and seeded A rows"
+    }
+  ],
+  "browser_natural": {
+    "results": [
+      {
+        "case": "natural session activity-A-14b3f6f",
+        "pass": true,
+        "improve_visible": true
+      },
+      {
+        "case": "natural session activity-B-14b3f6f",
+        "pass": true,
+        "improve_visible": false
+      },
+      {
+        "case": "incomplete composite identity rejected",
+        "pass": true
+      }
+    ],
+    "page_errors": [],
+    "blocked_external_requests": []
+  },
+  "browser_contract": {
+    "results": [
+      {
+        "case": "seeded unknown/null/zero, nullable user and background plus natural noop literal rendering",
+        "pass": true
+      },
+      {
+        "case": "composite filter activity-A-14b3f6f after seeded rows",
+        "pass": true
+      },
+      {
+        "case": "composite filter activity-B-14b3f6f after seeded rows",
+        "pass": true
+      },
+      {
+        "case": "real expired auth 401 clears rows and shows local error without redirect",
+        "pass": true
+      },
+      {
+        "case": "real native inaccessible-dataset 403 displays permission text",
+        "pass": true,
+        "harness_scope": "Added dataset_id to outgoing native feed request; forwarded native response unchanged."
+      }
+    ],
+    "page_errors": [],
+    "blocked_external_requests": []
+  },
+  "authentication": "Native registration/login; harness-generated disposable credentials stayed private outside Git. Login responses, cookies, passwords and keys excluded.",
+  "seeded": "Three explicitly seeded-* ledger rows and regular-member tenant membership are synthetic fixtures; unknown/null/zero/background rendering is contract proof, not natural capture.",
+  "browser_403_boundary": "Harness added inaccessible dataset_id to the outgoing native pipeline-runs request under outsider login; native 403 status/body forwarded unchanged. UI has no dataset filter for this request.",
+  "browser_401": "Real cookies cleared in an authenticated loaded Activity view; Refresh produced native 401, cleared rows, retained Activity, exposed /local-login Sign in link, and clicking it opened sign-in form.",
+  "legacy_auth_boundary": "12 localFetch unit cases mock HTTP/auth handler; legacy stats/detail/DELETE/dashboard default delegation is unit proof only, not separate browser navigation acceptance."
+}

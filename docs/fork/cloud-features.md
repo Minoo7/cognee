@@ -108,100 +108,79 @@ flock /tmp/cognee-fork-build.lock env \
   uv sync --frozen --no-dev --extra api
 ```
 
-Fresh storage, an explicitly empty dedicated env file, native authentication,
-SQLite session caching, `AUTO_FEEDBACK=false`, and `IMPROVE_AUTO_ENABLED=false`
-were used. Provider credentials were excluded from the subprocess environment;
-Hugging Face/model downloads were offline. Two disposable users authenticated via
-native registration/login. The owner's two sessions share one dataset:
+### Final source verification: passed defined gates
 
-- Owner: `96037265-c5d3-424b-a604-79772da75371`.
-- Dataset: `f6374a02-133b-5d73-8262-43f8d0c32156`.
-- Sessions: `activity-A-14b3f6f`, `activity-B-14b3f6f`.
+The clean checkout fetched public `Minoo7/cognee` and fast-forwarded from
+`922238acc78fa50413160a0640a0ef1667baffe8` to the exact tested source
+`d424820014404663d5562186858430c6d15c68d7`. The only correction since the failed
+validator was the request-options assertion requiring `authErrors: "throw"`;
+application implementation was unchanged. The failed receipt remains in Git history
+at `922238acc`. This verification made no app or test source changes.
 
-Both Q/A entries were naturally stored by `POST /api/v1/remember/entry`, with
-no LLM extraction or automatic improvement. Authenticated session detail returned
-the exact question and answer. Only A received an explicit improve request.
-It returned **409**, with a naturally captured operation row
-`f449efb5-ec1a-4e21-862b-d980fc8a770a`, run
-`1f4daf34-761c-4eae-8c3a-d14dd1493dca`, `origin=api`, `outcome=failed`,
-`error_class=ValueError`, `background=false`, measured token counts `0`, and
-`session_ids=["activity-A-14b3f6f"]`. The fatal Q/A persistence stage could not
-load offline model `BAAI/bge-small-en-v1.5`. Vector health is unhealthy for this
-same reason. This is failure capture proof, **not successful graph ingestion**.
-Typed Q/A cache writes do not emit their own `remember` operation rows here.
+- Targeted sessionOperations precheck: **14 passed**. Full exact-path frontend gate:
+  **27 suites / 278 tests passed, 0 failed, 0 skipped**. The precheck overlaps the full
+  gate and is not added to its total. All **12 localFetch cases** passed, including
+  opt-in 401/403, option stripping and default legacy stats/detail/DELETE/dashboard
+  auth-handler delegation. These are mocked transport/handler tests, not separate
+  live-browser legacy redirect proof.
+- Scoped ESLint: **passed**, covering maintained frontend source changed against
+  v1.6.7. Production Webpack build: **passed**, including TypeScript and page
+  generation, build ID `Kn8Z_iChu1FKvA9T888YK`. The build held the shared lock,
+  limited Node heap to 2304 MiB and used two page workers within 4 GiB / 2 CPUs.
+  Existing middleware deprecation, Edge-runtime and Browserslist warnings remain.
+- Fresh native API and built Chromium acceptance: **passed**. Both Q/A entries were
+  naturally stored with `POST /api/v1/remember/entry` for sessions A/B sharing one
+  dataset. Both native detail responses omitted `effective_status` and rendered the
+  stored session status and transcript. Only A received explicit improve; B's feed
+  remained empty before and after seeded fixtures and dataset-only no-op.
+- A's improve returned the expected **409** because offline embedding model
+  `BAAI/bge-small-en-v1.5` was unavailable. Its natural failed/ValueError record and
+  measured zero tokens rendered literally. A separate real dataset-only improve
+  returned `status=skipped` and recorded `outcome=noop`, displayed literally.
+  Successful graph improvement is **not established**.
+- Expired native authentication returned **401** on Refresh, cleared Activity rows,
+  kept the view on Activity, and showed a working **Sign in** link to `/local-login`.
+  A real native **403** displayed permission text with no rows. For that browser
+  case only, the external harness added an inaccessible `dataset_id` to the outgoing
+  native feed request under outsider login and forwarded the actual native response
+  unchanged; the maintained view does not offer that dataset filter.
+- Three explicitly `seeded-*` ledger rows exercise unknown outcome, null/zero,
+  nullable caller and background rendering; a regular-member tenant fixture tests
+  the native tenant-users 403 gate. These are synthetic contract fixtures, not
+  natural agent capture. API 401/403/404/400, outsider isolation and unknown-session
+  emptiness also passed. The eight browser cases produced no page errors or
+  external browser requests.
 
-B's linked Activity feed remained empty. The browser showed both real transcripts,
-A's failed improve, and B's empty recorded-processing view; the Activity links kept
-both session and owner. A separate real dataset-only improve with no sessions and
-both graph stages disabled returned `status=skipped` and recorded `outcome=noop`.
-It was displayed literally, with no session association or completion claim.
+The current replay uses fresh private storage at
+`/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/`; all earlier storage and
+receipts remain intact. Existing venv and shared node_modules were reused. The API
+ran with an empty dedicated env file, a minimal environment without provider keys,
+native authentication/access control, SQLite cache, `CACHING=true`,
+`AUTO_FEEDBACK=false`, `IMPROVE_AUTO_ENABLED=false`, and offline model loading.
+Disposable auth was generated solely by the existing harness and stayed private.
+No dependencies/models were downloaded and no paid provider was called.
 
-Three explicitly named `seeded-*` ledger rows supplement natural capture:
-unknown outcome `future_outcome`, nullable/zero metrics, a nullable user, and
-background acceptance. They are **synthetic contract fixtures**. They verify literal
-rendering and the same-caller/session filter, not native recording of those states.
-A regular-member tenant fixture exercises the real `/activity/users` 403 gate.
-One request made in the fixture's wrong active tenant also recorded a genuine
-permission failure; restoring the dataset's default scope allowed the no-op check.
+**Reused earlier proof, not rerun:** native API tests **28 passed / 3 optional-OTEL
+skips**, isolated installation tests **10 passed**, and real restart persistence
+of exact operation rows and both Q/A payloads belong to source
+`1d156bfdff0db9e0b41fbfad779d33d9ec3f0b5e`, including stable `31e36259`.
+Backend, installation scripts, `server.cjs` and `next.config.ts` have no changes
+between that source and d424. This earlier evidence is distinct from the fresh
+current-build API/browser acceptance above.
 
-Verified on the earlier integrated source `1d156bfd` (not revalidated on `31141d094`):
+[receipts/final-verification.json](receipts/final-verification.json) contains the
+exact commands, suite counts, build ID, new/reused evidence boundaries, screenshot
+names/hashes and cleanup. [The native summary](receipts/final-verification-native.json)
+and small text logs contain sanitized results only. Executable harnesses, raw private
+sandbox evidence and screenshots remain outside Git. API/UI/TLS ports 8000/3000/3443
+are stopped; owned browser tabs are closed; dependencies and all fixture data remain.
+No images, binaries, raw databases or authentication values are committed.
 
-- Focused frontend: **24 suites / 206 tests passed** (188 module/installation tests
-  plus 18 explicitly selected route/hook tests). The transport regression jointly
-  checks runtime backend URL selection and native recording 401/403 preservation.
-- Native API contracts: **28 passed, 3 skipped**; skips require the optional OTEL SDK.
-  Isolated installation/source/TLS tests: **10 passed**.
-- Production Webpack build: **passed**, including TypeScript and page generation.
-  Turbopack was attempted but rejects the existing external `node_modules` symlink.
-  Existing middleware, Edge-runtime and Browserslist warnings remain.
-- Scoped ESLint: **passed**. Non-archive diff whitespace checks passed; the installation
-  archive retains its original patch-file whitespace, as documented in validation.md.
-- Actual API: **401** unauthenticated, **403** inaccessible dataset and tenant users,
-  unrelated user feed empty, unknown session feed empty, unknown detail **404**,
-  invalid `limit=0` rejected with the app's **400** validation response.
-- Headless Chromium against the built maintained UI server and real local API:
-  natural A/B transcripts and processing, seeded null/zero/unknown/background
-  rendering, natural no-op, and expired-auth **401** clearing rows without redirect.
-  No page errors or external browser requests occurred.
-- API restart: exact operation rows and both cached Q/A payloads persisted. JWT login
-  was repeated because the sandbox deliberately uses generated per-process secrets.
-- Fresh SQLite migrated to Alembic `dd760c09e075`. No paid LLM/embedding calls,
-  production keys/data, Cloud authentication, billing, PR or deployment were used.
-
-Executable harnesses, HTTP receipts, logs, screenshots, isolated dependencies and
-disposable storage are retained in `/tmp/cognee-activity-acceptance-14b3f6f/` on
-Daytona. `natural-capture.json` and `api-receipts.json` precede synthetic fixtures;
-`seeded-fixtures.json`, `api-contract-receipts.json`, `browser-natural.json`,
-`browser-contract.json` and `restart-persistence.json` identify later evidence.
-The `start_api.py`, `start_frontend.py`, `api_acceptance.py`,
-`browser_acceptance.py`, `contract_api_acceptance.py`,
-`browser_contract_acceptance.py`, `restart_acceptance.py` and `stop_servers.py`
-files are executable Python integration commands. Browser screenshots use
-`natural-*`, `seeded-*` and `actual-401-*` names. Task-owned listeners are stopped
-after final acceptance; dependencies and records remain for inspection.
-
-### Final source verification: stopped on failure
-
-The clean checkout fast-forwarded to published feature head
-`31141d0942b6780cc721af48ecbcffe586cd2b0d`. One exact-path Jest run completed
-**27 suites: 26 passed, 1 failed; 278 tests: 277 passed, 1 failed, 0 skipped**.
-These counts include the route/components/hooks and installation regressions in the
-same run; they do not add overlapping earlier results. All **12 localFetch tests**
-passed, including opted-in 401/403, stripping `authErrors`, and default legacy auth
-handler dispatch. Those tests mock HTTP and the handler; they are not browser proof.
-
-The blocker is `src/modules/sessions/__tests__/sessionOperations.test.ts:30` under
-`cognee-frontend`: its exact fetch-call assertion expects `{ signal }`, while the
-reader now sends `{ signal, authErrors: "throw" }`. Verification stopped as instructed,
-without application or test edits. Scoped lint, the current production Webpack build,
-Python checks and current-source native API/browser acceptance were **not run**.
-There is no verified build ID for this source. Earlier API/browser/restart receipts
-remain evidence for their earlier source only. Source `31141d094` is **not green**.
-
-The exact command, per-suite counts, failure, source/log hashes, prior natural versus
-seeded evidence boundaries and cleanup are in
-[receipts/final-verification.json](receipts/final-verification.json). API/UI/TLS ports
-8000/3000/3443 have no listeners; dependencies and prior records remain on the sandbox.
+Other-caller/parent-account work may be absent because `user_id` identifies the caller;
+legacy children linked only through a parent operation are not reconstructed. These
+limits remain visible. API-key management, Analytics and other Cloud features remain
+deferred; the optional memory UI is excluded. Docker/MCP image builds and MCP lock
+alignment remain unverified. No production/Mac access, deployment, push or PR occurred.
 
 ## Publication and integration
 
@@ -234,7 +213,12 @@ The integrated bundle heads/hash and receiver receipt are recorded separately in
 `/tmp/cognee-activity-acceptance-14b3f6f/integrated-transfer.json`, so the bundle
 never contains its own changing hash. Public GitHub fetch and `ls-remote` now verify
 `selfhost/stable` at `31e36259aa8a3fc696fdff140feb1bd5f9b9174b` and
-`experiment/cloud-features` at `31141d0942b6780cc721af48ecbcffe586cd2b0d`, with stable
-an ancestor of feature. Publication is verified independently of the failed final
-check above. This checkout performs no push; the documentation-only validation
-bundle is handed to the parent.
+`experiment/cloud-features` at `d424820014404663d5562186858430c6d15c68d7`, with stable
+an ancestor of feature. The managed GitHub direct-push helper's **403 remains
+unrepaired**; the parent published all source refs. This checkout performs no push.
+The docs/receipts commit is handed to the prepared private receiver as a source-only
+bundle with range `d424820014404663d5562186858430c6d15c68d7..experiment/cloud-features`.
+Its verified head, SHA-256 and receiver response are recorded outside the bundle at
+`/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/verified-transfer.json`.
+The parent publishes that commit by fast-forward; the receiver writes only to its
+new OCI run's incoming directory and provides no production access.

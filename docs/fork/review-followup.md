@@ -27,31 +27,44 @@ The first source transfer preserved `14b3f6f22` exactly. The second preserved in
 
 The integration acceptance used real native API requests and disposable storage. Synthetic rows supplemented null/zero, unknown outcome and background contract cases; they are not evidence of natural agent capture. Q/A capture and failed improve were actual API calls. Graph improvement failed because the offline embedding model was unavailable. Successful graph improvement is not established.
 
-Final verification of `31141d0942b6780cc721af48ecbcffe586cd2b0d` stopped on a
-focused-test failure: `cognee-frontend/src/modules/sessions/__tests__/sessionOperations.test.ts:30`
-expects fetch options `{ signal }`, but the reader now supplies
-`{ signal, authErrors: "throw" }`. The single exact-path run completed 27 suites
-(26 passed, 1 failed), with 277 tests passed, 1 failed and 0 skipped. All 12
-localFetch cases passed, including the new opt-in errors, option stripping and
-retained legacy handler dispatch. They use mocked HTTP and a mocked auth handler.
+Final verification **passed the defined gates** on
+`d424820014404663d5562186858430c6d15c68d7`. The parent corrected the first
+validator's sole stale assertion to require the deliberate `authErrors: "throw"`
+option; no app implementation changed. The earlier 277-pass/1-fail receipt is
+preserved at `922238acc` in Git history.
 
-Per the stop-on-failure instruction, no application/test fixes or repeat run were
-made. Scoped lint, the production Webpack build, Python checks and current-build
-native API/browser acceptance were not reached. There is no current verified build
-ID or current-browser Sign in-link proof; earlier native acceptance is not a green
-result for this source. See [receipts/final-verification.json](receipts/final-verification.json)
-for the exact command, counts, failure, source/log hashes and cleanup. Ports
-8000/3000/3443 are stopped, and prior sandbox dependencies and records are retained.
+The repeated targeted file passed **14/14**; the exact 27-suite gate passed
+**278/278, 0 skipped**, including all 12 transport cases. Scoped lint and locked
+production Webpack build passed, build ID `Kn8Z_iChu1FKvA9T888YK`. Fresh native
+API/built-browser acceptance passed: detail without `effective_status`, natural A/B
+Q/A on one dataset with A-only failed improve, literal failed/noop and seeded
+null/zero/unknown/background outcomes, real expired-auth 401 staying on Activity
+with a working Sign in link, and native 403 permission text. The 403 browser case
+uses a harness-added inaccessible dataset scope and forwards the real native
+response unchanged. Legacy auth delegation is mocked unit proof, not separate
+live-browser redirect proof. No browser page errors or external requests occurred.
 
-Public GitHub fetch and remote readback verify published stable
-`31e36259aa8a3fc696fdff140feb1bd5f9b9174b` and feature
-`31141d0942b6780cc721af48ecbcffe586cd2b0d`; stable is an ancestor of feature.
-This verifies publication, not successful final runtime validation. Docker image
-builds, production deployment and MCP lock alignment remain outside the completed
-acceptance. Production was not changed.
+Earlier **28 API passes / 3 optional tracing skips**, **10 isolated selfhost
+passes**, and real restart persistence remain reused `1d156bfd` evidence. Backend
+and installation/runtime source did not change; these checks were not repeated.
+The new fresh replay is distinct. Offline improve still returns expected **409**;
+successful graph improvement is not established. Other-caller/parent-account work
+and legacy parent-only child associations can still be absent. API-key/Analytics
+and other Cloud features remain deferred; optional memory UI is excluded.
 
-## Final assertion correction
+See [receipts/final-verification.json](receipts/final-verification.json) for exact
+commands/counts, build ID, screenshot names/hashes, evidence boundaries and cleanup.
+Ports 8000/3000/3443 and owned browser tabs are stopped/closed. Fresh and old private
+storage, dependencies and fixtures remain outside Git; only sanitized docs/receipts
+are committed. Docker/MCP image builds and MCP lock alignment remain unverified.
+No production access, deployment, Git push or PR was performed.
 
-The first reviewed-source run passed 277 tests and failed one request-options assertion. All 12 transport cases passed. The recorded-runs assertion now includes its deliberate per-request auth-error opt-in. No application implementation changed in this correction; build and native-browser checks await the repeated validation. The earlier failed receipt remains in Git history.
+Public readback verifies stable `31e36259aa8a3fc696fdff140feb1bd5f9b9174b` and
+feature `d424820014404663d5562186858430c6d15c68d7`, with stable an ancestor of
+feature. The managed sandbox helper's direct-push **403 remains unrepaired**;
+the parent published the refs. This docs-only commit is transferred as a verified
+source-only incremental bundle to the prepared private receiver for parent
+fast-forward publication. The external `verification-d424/verified-transfer.json`
+records the bundle head/hash and receiver response without a self-referential hash.
 
 The maintained TLS guide describes its original isolated Daytona verification. The parent also used a separate OCI development checkout for source preservation, publication and review corrections. Production application configuration and container identities were checked against their baseline. The Mac acted as a controller without a Cognee checkout or database.

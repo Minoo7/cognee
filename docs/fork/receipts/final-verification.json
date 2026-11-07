@@ -1,230 +1,280 @@
 {
-  "schema_version": 1,
-  "recorded_at_utc": "2026-11-07T16:42:00.659630+00:00",
-  "verdict": "FAILED_STOPPED_AT_FIRST_CHECK",
-  "tested_commit": "31141d0942b6780cc721af48ecbcffe586cd2b0d",
-  "stable_commit": "31e36259aa8a3fc696fdff140feb1bd5f9b9174b",
-  "initial_head": "1d156bfdff0db9e0b41fbfad779d33d9ec3f0b5e",
-  "initial_worktree_clean": true,
-  "fast_forward_only": true,
-  "stable_is_ancestor": true,
+  "status": "PASS_DEFINED_GATES",
+  "recorded_at_utc": "2026-11-07T17:02:50.369678+00:00",
+  "tested_commit": "d424820014404663d5562186858430c6d15c68d7",
+  "verification_scope": "Final verification only. No app/test implementation changes, dependency installs, provider credentials, paid calls, model downloads, production/Mac access, deployment, push or PR. External harness adapted for fresh storage/current contract and native denied-dataset scope.",
+  "previous_failed_receipt": {
+    "commit": "922238acc78fa50413160a0640a0ef1667baffe8",
+    "tested_commit": "31141d0942b6780cc721af48ecbcffe586cd2b0d",
+    "path": "docs/fork/receipts/final-verification.json",
+    "status": "Preserved in Git history; 277 passed / 1 stale request-options assertion failed."
+  },
   "publication": {
-    "source": "public GitHub fork, unauthenticated Git transport",
     "remote": "https://github.com/Minoo7/cognee.git",
-    "heads": {
-      "refs/heads/experiment/cloud-features": "31141d0942b6780cc721af48ecbcffe586cd2b0d",
-      "refs/heads/selfhost/stable": "31e36259aa8a3fc696fdff140feb1bd5f9b9174b"
-    },
-    "meaning": "Both requested source heads are published and exact hashes verified; this does not mean runtime validation passed."
+    "feature": "d424820014404663d5562186858430c6d15c68d7",
+    "stable": "31e36259aa8a3fc696fdff140feb1bd5f9b9174b",
+    "stable_is_feature_ancestor": true,
+    "helper": "Managed sandbox direct-push helper 403 remains unrepaired. Parent published refs; this checkout only fetched/read back. Docs commit awaits parent fast-forward publication.",
+    "handoff": "Source-only bundle d424820014404663d5562186858430c6d15c68d7..experiment/cloud-features; private prepared receiver http://100.97.84.7:18764/verified-validation.bundle. Transfer receipt is outside bundle to avoid self-referential hashes."
   },
   "commands": [
     {
+      "name": "targeted",
+      "cwd": "/home/daytona/cloud/repository/cognee-frontend",
+      "command": "./node_modules/.bin/jest --runInBand --runTestsByPath src/modules/sessions/__tests__/sessionOperations.test.ts --json --outputFile=/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/targeted.json",
+      "exit_code": 0
+    },
+    {
       "name": "jest",
       "cwd": "/home/daytona/cloud/repository/cognee-frontend",
-      "command": "./node_modules/.bin/jest --runInBand --runTestsByPath src/modules/sessions/__tests__/activityRows.test.ts src/modules/sessions/__tests__/envNumber.test.ts src/modules/sessions/__tests__/listSearchSessions.test.ts src/modules/sessions/__tests__/normalizeSessionRows.test.ts src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts src/modules/sessions/__tests__/sessionOperations.test.ts src/modules/config/__tests__/runtimeConfig.test.ts src/modules/config/__tests__/serverRuntimeConfig.test.ts 'src/app/(app)/activity/__tests__/activity.test.tsx' 'src/app/(app)/sessions/__tests__/recordedSession.test.tsx' 'src/app/(app)/sessions/partials/__tests__/useSessionProcessing.test.tsx' src/modules/instances/__tests__/localFetch.test.ts src/modules/tenant/__tests__/localTenantApi.test.ts src/modules/tenant/__tests__/createWorkspace.test.ts src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx src/modules/users/__tests__/getLocalApiUrl.test.ts src/modules/users/__tests__/getLocalUser.test.ts src/modules/users/__tests__/getUser.test.ts src/modules/users/__tests__/useCurrentUser.test.tsx src/app/api/__tests__/authenticatedProxies.test.ts src/ui/layout/__tests__/NameWorkspaceModal.test.tsx src/ui/layout/__tests__/TopBarUserName.test.tsx src/ui/layout/__tests__/FilterContext.test.tsx src/modules/datasets/__tests__/describeTextBlob.test.ts src/services/http/__tests__/errors.test.ts src/utils/__tests__/sessionRoutes.test.ts src/utils/__tests__/useBoundedPoll.test.ts --json --outputFile=/tmp/cognee-activity-acceptance-14b3f6f/verification-311/jest.json",
-      "exit_code": 1
+      "command": "./node_modules/.bin/jest --runInBand --runTestsByPath src/modules/sessions/__tests__/activityRows.test.ts src/modules/sessions/__tests__/envNumber.test.ts src/modules/sessions/__tests__/listSearchSessions.test.ts src/modules/sessions/__tests__/normalizeSessionRows.test.ts src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts src/modules/sessions/__tests__/sessionOperations.test.ts src/modules/config/__tests__/runtimeConfig.test.ts src/modules/config/__tests__/serverRuntimeConfig.test.ts 'src/app/(app)/activity/__tests__/activity.test.tsx' 'src/app/(app)/sessions/__tests__/recordedSession.test.tsx' 'src/app/(app)/sessions/partials/__tests__/useSessionProcessing.test.tsx' src/modules/instances/__tests__/localFetch.test.ts src/modules/tenant/__tests__/localTenantApi.test.ts src/modules/tenant/__tests__/createWorkspace.test.ts src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx src/modules/users/__tests__/getLocalApiUrl.test.ts src/modules/users/__tests__/getLocalUser.test.ts src/modules/users/__tests__/getUser.test.ts src/modules/users/__tests__/useCurrentUser.test.tsx src/app/api/__tests__/authenticatedProxies.test.ts src/ui/layout/__tests__/NameWorkspaceModal.test.tsx src/ui/layout/__tests__/TopBarUserName.test.tsx src/ui/layout/__tests__/FilterContext.test.tsx src/modules/datasets/__tests__/describeTextBlob.test.ts src/services/http/__tests__/errors.test.ts src/utils/__tests__/sessionRoutes.test.ts src/utils/__tests__/useBoundedPoll.test.ts --json --outputFile=/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/jest.json",
+      "exit_code": 0
+    },
+    {
+      "name": "eslint",
+      "cwd": "/home/daytona/cloud/repository/cognee-frontend",
+      "command": "./node_modules/.bin/eslint next.config.ts server.cjs 'src/app/(app)/activity/__tests__/activity.test.tsx' 'src/app/(app)/activity/page.tsx' 'src/app/(app)/sessions/__tests__/recordedSession.test.tsx' 'src/app/(app)/sessions/page.tsx' 'src/app/(app)/sessions/partials/RecordedProcessingCard.tsx' 'src/app/(app)/sessions/partials/RecordedRunCard.tsx' 'src/app/(app)/sessions/partials/__tests__/useSessionProcessing.test.tsx' 'src/app/(app)/sessions/partials/useSessionProcessing.ts' 'src/app/(auth)/local-login/partials/LocalSignInForm.tsx' src/app/api/__tests__/authenticatedProxies.test.ts src/app/api/local-signout/route.ts src/app/api/schema-provenance/route.ts src/app/api/schema/inventory/route.ts src/app/api/schema/provenance/route.ts src/app/api/visualize/route.ts src/modules/instances/__tests__/localFetch.test.ts src/modules/instances/localFetch.ts src/modules/instances/types.ts src/modules/sessions/__tests__/sessionOperations.test.ts src/modules/sessions/getSessions.ts src/modules/sessions/sessionOperations.ts src/modules/sessions/testSupport/recordedFixtures.ts src/modules/tenant/AppProvider.tsx src/modules/tenant/LocalProvider.tsx src/modules/tenant/TenantContext.tsx src/modules/tenant/TenantProvider.tsx src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx src/modules/tenant/__tests__/createWorkspace.test.ts src/modules/tenant/__tests__/localTenantApi.test.ts src/modules/tenant/createWorkspace.ts src/modules/tenant/localTenantApi.ts src/modules/users/__tests__/getLocalUser.test.ts src/modules/users/__tests__/getUser.test.ts src/modules/users/__tests__/useCurrentUser.test.tsx src/modules/users/getCurrentUserProfile.ts src/modules/users/getLocalUser.ts src/modules/users/getUser.ts src/modules/users/useCurrentUser.ts src/ui/elements/AgentActivityTerminal.tsx src/ui/elements/ShareDatasetModal.tsx src/ui/layout/FilterContext.tsx src/ui/layout/NameWorkspaceModal.tsx src/ui/layout/TopBar.tsx src/ui/layout/__tests__/NameWorkspaceModal.test.tsx",
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "cwd": "/home/daytona/cloud/repository/cognee-frontend",
+      "command": "flock /tmp/cognee-fork-build.lock env CIRCLE_NODE_TOTAL=3 NODE_OPTIONS=--max-old-space-size=2304 npm run build -- --webpack",
+      "exit_code": 0
     }
   ],
   "tests": {
-    "runs": 1,
     "unique_suites": 27,
-    "passed_suites": 26,
-    "failed_suites": 1,
+    "passed_suites": 27,
+    "failed_suites": 0,
     "unique_tests": 278,
-    "passed": 277,
-    "failed": 1,
+    "passed": 278,
+    "failed": 0,
     "skipped": 0,
     "todo": 0,
-    "overlap": "One exact-path Jest invocation; every result file is unique. No totals added from prior runs.",
+    "targeted_precheck": {
+      "suites": 1,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "overlap": "Subset repeated in 278-test gate, not added to total."
+    },
     "suites": [
-      {
-        "path": "cognee-frontend/src/utils/__tests__/useBoundedPoll.test.ts",
-        "status": "passed",
-        "passed": 12,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/services/http/__tests__/errors.test.ts",
-        "status": "passed",
-        "passed": 31,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/datasets/__tests__/describeTextBlob.test.ts",
-        "status": "passed",
-        "passed": 20,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/utils/__tests__/sessionRoutes.test.ts",
-        "status": "passed",
-        "passed": 7,
-        "failed": 0,
-        "skipped": 0
-      },
       {
         "path": "cognee-frontend/src/app/(app)/sessions/partials/__tests__/useSessionProcessing.test.tsx",
         "status": "passed",
         "passed": 7,
         "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/app/(app)/activity/__tests__/activity.test.tsx",
         "status": "passed",
         "passed": 7,
         "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/ui/layout/__tests__/FilterContext.test.tsx",
         "status": "passed",
         "passed": 7,
         "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/app/(app)/sessions/__tests__/recordedSession.test.tsx",
         "status": "passed",
         "passed": 4,
         "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/utils/__tests__/useBoundedPoll.test.ts",
+        "status": "passed",
+        "passed": 12,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/ui/layout/__tests__/TopBarUserName.test.tsx",
         "status": "passed",
         "passed": 6,
         "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/ui/layout/__tests__/NameWorkspaceModal.test.tsx",
-        "status": "passed",
-        "passed": 13,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/users/__tests__/useCurrentUser.test.tsx",
-        "status": "passed",
-        "passed": 2,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx",
-        "status": "passed",
-        "passed": 3,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/app/api/__tests__/authenticatedProxies.test.ts",
-        "status": "passed",
-        "passed": 8,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/config/__tests__/runtimeConfig.test.ts",
-        "status": "passed",
-        "passed": 17,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/sessions/__tests__/activityRows.test.ts",
-        "status": "passed",
-        "passed": 49,
-        "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/modules/instances/__tests__/localFetch.test.ts",
         "status": "passed",
         "passed": 12,
         "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/modules/sessions/__tests__/sessionOperations.test.ts",
-        "status": "failed",
-        "passed": 13,
-        "failed": 1,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/sessions/__tests__/listSearchSessions.test.ts",
         "status": "passed",
         "passed": 14,
         "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/users/__tests__/useCurrentUser.test.tsx",
+        "status": "passed",
+        "passed": 2,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/tenant/__tests__/LocalProvider.isOwner.test.tsx",
+        "status": "passed",
+        "passed": 3,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/ui/layout/__tests__/NameWorkspaceModal.test.tsx",
+        "status": "passed",
+        "passed": 13,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/app/api/__tests__/authenticatedProxies.test.ts",
+        "status": "passed",
+        "passed": 8,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/services/http/__tests__/errors.test.ts",
+        "status": "passed",
+        "passed": 31,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/modules/users/__tests__/getUser.test.ts",
         "status": "passed",
         "passed": 2,
         "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/sessions/__tests__/envNumber.test.ts",
-        "status": "passed",
-        "passed": 9,
-        "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/modules/config/__tests__/serverRuntimeConfig.test.ts",
         "status": "passed",
         "passed": 6,
         "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
       },
       {
-        "path": "cognee-frontend/src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts",
+        "path": "cognee-frontend/src/modules/sessions/__tests__/activityRows.test.ts",
         "status": "passed",
-        "passed": 4,
+        "passed": 49,
         "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/users/__tests__/getLocalUser.test.ts",
-        "status": "passed",
-        "passed": 3,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/tenant/__tests__/createWorkspace.test.ts",
-        "status": "passed",
-        "passed": 1,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/tenant/__tests__/localTenantApi.test.ts",
-        "status": "passed",
-        "passed": 5,
-        "failed": 0,
-        "skipped": 0
-      },
-      {
-        "path": "cognee-frontend/src/modules/users/__tests__/getLocalApiUrl.test.ts",
-        "status": "passed",
-        "passed": 5,
-        "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
       },
       {
         "path": "cognee-frontend/src/modules/sessions/__tests__/normalizeSessionRows.test.ts",
         "status": "passed",
         "passed": 10,
         "failed": 0,
-        "skipped": 0
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/tenant/__tests__/localTenantApi.test.ts",
+        "status": "passed",
+        "passed": 5,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/sessions/__tests__/listSearchSessions.test.ts",
+        "status": "passed",
+        "passed": 14,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/datasets/__tests__/describeTextBlob.test.ts",
+        "status": "passed",
+        "passed": 20,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/config/__tests__/runtimeConfig.test.ts",
+        "status": "passed",
+        "passed": 17,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/sessions/__tests__/envNumber.test.ts",
+        "status": "passed",
+        "passed": 9,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/utils/__tests__/sessionRoutes.test.ts",
+        "status": "passed",
+        "passed": 7,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/users/__tests__/getLocalApiUrl.test.ts",
+        "status": "passed",
+        "passed": 5,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/sessions/__tests__/sessionsProbeIsolation.test.ts",
+        "status": "passed",
+        "passed": 4,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/tenant/__tests__/createWorkspace.test.ts",
+        "status": "passed",
+        "passed": 1,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
+      },
+      {
+        "path": "cognee-frontend/src/modules/users/__tests__/getLocalUser.test.ts",
+        "status": "passed",
+        "passed": 3,
+        "failed": 0,
+        "pending": 0,
+        "todo": 0
       }
     ],
     "local_fetch": {
@@ -279,66 +329,90 @@
           "status": "passed"
         }
       ],
-      "proof_boundary": "Mocked HTTP and mocked auth handler; proves per-request transport dispatch and option stripping, not a built-browser redirect or live API outcome."
+      "proof_boundary": "12 localFetch unit cases mock HTTP/auth handler; legacy stats/detail/DELETE/dashboard default delegation is unit proof only, not separate browser navigation acceptance."
     }
-  },
-  "blocker": {
-    "path": "cognee-frontend/src/modules/sessions/__tests__/sessionOperations.test.ts",
-    "line": 30,
-    "test": "reads native bare-array pages of 50, encoded session only, with cancellation",
-    "error": "toHaveBeenCalledWith expects { signal }; actual fetch init is { signal, authErrors: \"throw\" }.",
-    "reader_path": "cognee-frontend/src/modules/sessions/sessionOperations.ts",
-    "reader_line": 46,
-    "interpretation": "Existing assertion was not updated for the intentional per-request opt-in. No application behavior fix is inferred from this test failure.",
-    "action": "Stopped; no application or test edits; no rerun."
   },
   "build": {
-    "status": "NOT_RUN_STOP_ON_FAILURE",
-    "build_id": null,
-    "planned_command": "flock /tmp/cognee-fork-build.lock env CIRCLE_NODE_TOTAL=3 NODE_OPTIONS=--max-old-space-size=2304 npm run build -- --webpack",
-    "cwd": "/home/daytona/cloud/repository/cognee-frontend",
-    "note": "Existing .next artifacts predate this final source and are not evidence for 311."
+    "status": "PASS",
+    "build_id": "Kn8Z_iChu1FKvA9T888YK",
+    "webpack": true,
+    "typescript": "PASS",
+    "page_generation": "PASS",
+    "warnings": [
+      "Existing middleware deprecation",
+      "Existing Edge-runtime process.cwd dependency warning",
+      "Outdated Browserslist data"
+    ]
   },
   "scoped_lint": {
-    "status": "NOT_RUN_STOP_ON_FAILURE",
-    "selection": "Maintained frontend .ts/.tsx/.cjs/.js files changed against upstream eaa33be5c58cd14584e64e3e0ed2e1479472ee09; ESLint without --fix."
-  },
-  "python_api_and_selfhost_tests": {
-    "status": "NOT_RUN_STOP_ON_FAILURE",
-    "note": "Earlier 28 API passes / 3 optional tracing skips and 10 isolated selfhost passes belong to 1d156bfd, not this run."
+    "status": "PASS",
+    "selection": "Maintained frontend .ts/.tsx/.cjs/.js changed against eaa33be5c58cd14584e64e3e0ed2e1479472ee09; no --fix. Exact files in commands."
   },
   "current_source_api_browser_acceptance": {
-    "status": "NOT_RUN_STOP_ON_FAILURE",
-    "assertions_not_revalidated": [
-      "New reader real 401 stays on view and shows a usable Sign in link",
-      "Legacy stats/detail/DELETE/dashboard real auth-handler navigation",
-      "403 display in built UI",
-      "Actual detail response without effective_status",
-      "Natural Q/A capture and A/B processing separation",
-      "Literal seeded null/zero/unknown/background display",
-      "Offline improvement 409 failure rendering"
+    "status": "PASS",
+    "directory": "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424",
+    "summary_receipt": "final-verification-native.json",
+    "api_recorded_requests": 18,
+    "additional_contract_status_checks": 3,
+    "browser_cases": 8,
+    "new_proof": [
+      "Both native Q/A entries stored and rendered on same dataset; only A has explicit failed improve; B empty before and after fixtures/noop",
+      "Both native detail responses omit effective_status and render stored session status",
+      "Offline improve returns 409, naturally records failed/ValueError/zero metrics and UI shows failure",
+      "Real dataset-only improve returns skipped and records noop displayed literally",
+      "Seeded null/zero/unknown/background/nullable user render literally",
+      "Real 401 keeps Activity, clears rows, exposes usable Sign in link",
+      "Real native 403 permission text; harness-added inaccessible dataset scope disclosed",
+      "No browser page errors or external browser requests"
     ],
-    "browser_setup_attempt": {
-      "preview_status": "No existing tab",
-      "preview_open_url": "http://localhost:3000/local-login",
-      "result": "net::ERR_CONNECTION_REFUSED; setup probe before any server startup, not an app assertion",
-      "owned_preview_sessions_at_cleanup": 0
-    }
+    "replay_commands": [
+      "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/venv/bin/python /tmp/cognee-activity-acceptance-14b3f6f/verification-d424/start_api.py",
+      "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/venv/bin/python /tmp/cognee-activity-acceptance-14b3f6f/verification-d424/final_flow.py"
+    ],
+    "workflow_stages": [
+      "api_acceptance.py",
+      "start_frontend.py",
+      "browser_acceptance.py",
+      "runtime_env.py seed_contract_cases.py",
+      "contract_api_acceptance.py",
+      "browser_contract_acceptance.py",
+      "stop_servers.py frontend api"
+    ],
+    "environment": "Minimal allowlisted environment; CACHING=true, SQLite cache, AUTO_FEEDBACK=false, IMPROVE_AUTO_ENABLED=false, access control/auth on, Hugging Face and transformers offline; empty dedicated sandbox.env; fresh private storage."
   },
-  "prior_evidence_only": {
+  "reused_proof": {
     "tested_commit": "1d156bfdff0db9e0b41fbfad779d33d9ec3f0b5e",
-    "directory": "/tmp/cognee-activity-acceptance-14b3f6f/final",
-    "natural": "POST remember/entry Q/A for two sessions sharing a dataset; only A explicit improve, HTTP 409 from unavailable offline embedding model; B activity empty; real no-op also captured. No paid provider calls.",
-    "seeded": "Three seeded-* ledger rows exercise unknown outcome, null/zero metrics, nullable caller and background metadata; regular-member tenant fixture exercises real 403. These are synthetic fixtures, not naturally captured agent runs.",
-    "persistence": "Earlier exact SQL-backed rows and Q/A survived restart; no storage/backend source changed in 311. Not repeated because this final run stopped before API startup.",
-    "boundary": "Earlier native/browser success is not current-build acceptance and does not validate new Sign in links or B2 auth changes."
+    "stable_source": "31e36259aa8a3fc696fdff140feb1bd5f9b9174b",
+    "backend_and_selfhost_diff_to_d424": "Empty for cognee/, scripts/, cognee-frontend/server.cjs and next.config.ts; not rerun.",
+    "native_api_contract_tests": {
+      "passed": 28,
+      "skipped": 3,
+      "skip_reason": "Optional OTEL SDK absent"
+    },
+    "isolated_selfhost_tests": {
+      "passed": 10
+    },
+    "restart_persistence": "Prior real restart preserved exact SQL operation rows and both cached Q/A payloads; not repeated.",
+    "evidence_directory": "/tmp/cognee-activity-acceptance-14b3f6f/final",
+    "hashes": {
+      "/tmp/cognee-activity-acceptance-14b3f6f/final/restart_acceptance.command.log": {
+        "sha256": "c45911eee8ff5f1f409ea014914e1f4afa1dee7221bb7495f09ba258b809ae1e",
+        "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
+      },
+      "/tmp/cognee-activity-acceptance-14b3f6f/final/restart-persistence.json": {
+        "sha256": "746bf0e2039451d3944f936c6f5b61943a0afc82299cbacd11f8ddc938a8fc72",
+        "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
+      }
+    }
   },
   "resource_budget": {
     "cgroup_memory_bytes": 4294967296,
     "cgroup_cpu_quota": "200000/100000 (2 CPUs)",
     "jest": "--runInBand",
-    "build_lock": "/tmp/cognee-fork-build.lock (planned build not reached)",
-    "dependencies": "Reused ignored node_modules symlink and existing venv; nothing installed or downloaded."
+    "build_lock": "/tmp/cognee-fork-build.lock",
+    "node_heap_mib": 2304,
+    "build_page_workers": 2,
+    "dependencies": "Existing ignored shared node_modules and venv reused; nothing installed/downloaded."
   },
   "cleanup": {
     "listeners": [
@@ -358,82 +432,198 @@
         "listener_stopped": true
       }
     ],
-    "task_owned_servers_started_this_run": 0,
-    "tls_listener_stopped": true,
-    "browser_tabs_opened_and_retained": 0,
-    "preview_session_list_empty": true,
-    "preserved": "Existing sandbox dependencies, SQL records, private disposable auth fixtures, screenshots and logs retained outside Git. No raw DB, authentication values, images, keys or binaries copied into receipts."
+    "task_owned_servers": [
+      {
+        "server": "frontend",
+        "pid": 31375,
+        "port": 3000,
+        "listener_stopped": true
+      },
+      {
+        "server": "api",
+        "pid": 30786,
+        "port": 8000,
+        "listener_stopped": true
+      }
+    ],
+    "owned_preview_tabs_retained": 0,
+    "browser_setup": "Initial preview unavailable/open refused before UI startup; later preview login-page probe succeeded and owned tab was closed. Existing Playwright acceptance harness ran built-browser assertions privately.",
+    "preserved": "All old/fresh storage, fixtures, dependencies and private evidence retained outside Git. No images/binaries/raw DB/keys/cookies/passwords committed."
   },
   "limitations": [
-    "FAILED final verification; no green result for source 311.",
-    "Mocked frontend tests are not proof of complete production lifecycle.",
-    "Successful graph improvement not established; offline model limitation intentionally retained.",
-    "No Docker or MCP image build, production/Mac access, provider credentials, deployment or extra Cloud features verified."
+    "Run user_id is caller, not stored composite owner; UI may omit other-caller/parent-account processing.",
+    "Legacy children linked only through parent operations are not reconstructed.",
+    "Offset history is not a snapshot; best-effort recording and native session cache/detail limits remain.",
+    "Successful graph improvement unverified: expected offline embedding 409 is failure-capture proof.",
+    "Legacy auth navigation validated by mocked transport delegation tests, not dedicated live browser redirects.",
+    "API-key/Analytics and other Cloud features deferred; optional memory UI excluded.",
+    "Docker/MCP image and lock alignment unverified; no deployment.",
+    "Sandbox managed GitHub direct-push helper 403 unrepaired; parent publishes."
   ],
+  "evidence_sha256": {
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/actual-401-clears-activity.png": {
+      "sha256": "1e3ae05e41091018998eeeef02f565b64d9c451c0870d827b1a16aa1252da1b7",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/actual-403-permission.png": {
+      "sha256": "d7c2aa1f045c81f8d4169cf51d4118802a6247b9bb796a2d1b610d44ec0f49f1",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/api-contract-receipts.json": {
+      "sha256": "f90c69383c76d612ea2b646386f097ef07b30141e7546bfba56f23d13c6ca036",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/api-receipts.json": {
+      "sha256": "c4dd88e900d79dc9d7da0235bc1adb90fee624b91f30ecd292bf75a6d1ba878c",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/api_acceptance.command.log": {
+      "sha256": "b4b1e98cee85d16f688ae66191b3d113defaa06ad4464bfa2928785f4b2fbdd3",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/api_acceptance.py": {
+      "sha256": "46ef15127c11edeebdb984c2cc146dc4e1dd71db1bc73937843a0500036c2cc1",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/browser-contract.json": {
+      "sha256": "793307b0d5cdb3edf22ce629306c14d74f51b0615f91cd8190afe4b974de4281",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/browser-natural.json": {
+      "sha256": "28f0d7da60773ebb57d5d88c63506973eb4e3b97e8336f1d3ed182c9542f9d26",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/browser_acceptance.command.log": {
+      "sha256": "a072f07da72a5e35d799ba3f63a33ee2c20b1dab2663df6a49740e8f26f90400",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/browser_acceptance.py": {
+      "sha256": "f6d47e365366780ff219f0642ab0bd33796226b07142a13075d6139f793c05f2",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/browser_contract_acceptance.command.log": {
+      "sha256": "be47fddbefc377391cc0f782331d93d3df78fc9d15aa96427e89802d5bb33d3f",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/browser_contract_acceptance.py": {
+      "sha256": "1f8a316926a24c7720bb77efda43eb407cb9cc6e5132a4a335b3cb9d0101f31b",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/build.log": {
+      "sha256": "b26d47d2b6503147db41416c66074a8ac625285fbdfde29d9a858f2b2c2b6e8b",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/cleanup-latest.json": {
+      "sha256": "e252168bf9d9625788658259b97bfd58bfc3fe8b413aa4a574de4fa5d665f3d4",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/commands.json": {
+      "sha256": "9539b660093395d2549cb97e42d645cc35fa89ed9e510dcdc78b3e5f3e6f8af2",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/contract_api_acceptance.command.log": {
+      "sha256": "720d2bfb90c03d1586a480fd96a0aebde6587a67c3193f3dc57989d5886f217d",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/contract_api_acceptance.py": {
+      "sha256": "8759d0959f4ec0e34cce7ea7491565a58185d175d715a2998cc24100e2dfcac5",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/final-result.json": {
+      "sha256": "9e2f50b9e046771152c044a1128dbc6d586a14214d148ecb2d807900f6ab91d3",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/final_flow.py": {
+      "sha256": "059b9e408ccd668eb1eb20c9e7a9bedfaad56d79160ab09e5b2e72b6d572e345",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/jest.json": {
+      "sha256": "ca8958d8984e97eaf50cb241bb87d3ce2e1b21393a44c047b49341b930ba9064",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/jest.log": {
+      "sha256": "5fd6084c2b58d9b6142f3fc221bc1d2c58bebc980c1b99b58cc6f29f0b60d617",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/natural-activity-A.png": {
+      "sha256": "b4182f6a7cb58f31e45e77921c222a0cbbaa3e664f71279e509b38003a3a497d",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/natural-activity-B.png": {
+      "sha256": "265cd6b5668f995f9fcc32fd21a2c39c61f606acd04a0b0ca7108469dce83688",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/natural-capture.json": {
+      "sha256": "aaedc8769e2a15d35429ded5bfef5a609c28290d8e383ad82972257fc1161b65",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/natural-session-A.png": {
+      "sha256": "513074353392476b04970ac4681b4c7c69e1c64d51849f67007002d3f0d88d40",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/natural-session-B.png": {
+      "sha256": "ad6034f0c7695e0820f29f64e01f54d0a9073a2b972630d7bc9dea8a9e30b41b",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/run_checks.py": {
+      "sha256": "64b52a51f4a08fef907da4ce58e8623b290b1099e2c3056a7f4802d7d5d4cb71",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/runtime_env.py": {
+      "sha256": "e9eab1a2b4cea6624bdba437b3ac394bf242566f6b74455ba6f2dc6204d0d428",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/seed_contract_cases.py": {
+      "sha256": "1102e656fd9287bcef610fa603d24d50389270ac2514d0c1020873ff17169881",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/seeded-activity-contract.png": {
+      "sha256": "c8022f1565f504a526e283ed7664955cc12ffd2c8325701b98e84455a85cc786",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/seeded-fixtures.json": {
+      "sha256": "f11ab1706e15a866be2eb0733a0763d8aa86c33ed85a6b4950b9c53411a921cb",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/start_api.py": {
+      "sha256": "dd4dd26950c854adfdb958e337cdad899788ff842bb6503abd7d05563fefc02d",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/start_frontend.py": {
+      "sha256": "d074c83256080c0a2e2cda58b9cca2b73d2dd55f9dd12d72eeeb0b1202c0566e",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/stop_servers.py": {
+      "sha256": "ea7a96112a07fa590640cc53e6eca260779697f70234bd04be1f3f2ab84d9a65",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/targeted.json": {
+      "sha256": "f3ea3d1bdbd8c9bed4fe24fb560456aa90e80549dcca9f8450ac6292f51dedd5",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    },
+    "/tmp/cognee-activity-acceptance-14b3f6f/verification-d424/write_receipts.py": {
+      "sha256": "1ad8f0a92784362181ae7747032501724ff39cd8969c78fe2b3b3bce626d258a",
+      "scope": "current d424 evidence or external harness; retained only outside Git"
+    }
+  },
   "recording_source_names_and_sha256": {
     "cognee-frontend/src/modules/instances/localFetch.ts": "6658c4b55e0baa7a53ed7d1c25b8b10d0374103442a1de09384d7920265beb42",
     "cognee-frontend/src/modules/instances/types.ts": "e49c41be410a941d66d54894ba38a32eb744e7b477a0bf86e8a443dc2d4e8acc",
     "cognee-frontend/src/modules/instances/__tests__/localFetch.test.ts": "b612c4c1ece3818a26929634ef271f82b4aa3d7e2fb621cdc023862daf6e9878",
     "cognee-frontend/src/modules/sessions/sessionOperations.ts": "64e213a0fcb02f2a399024b832a4b0c75a33ff332727d2284511a1e5540b3328",
-    "cognee-frontend/src/modules/sessions/__tests__/sessionOperations.test.ts": "f456c31b6bb686253abd563e12fc409219c6eba73737d568a65188ea0272841d",
+    "cognee-frontend/src/modules/sessions/__tests__/sessionOperations.test.ts": "d8a296cde8d20ea41ec67400cc5f4d8f89fbd086077ba68551b1b7f8122ca6e8",
     "cognee-frontend/src/app/(app)/activity/page.tsx": "3e3294806aa42564eb3af9c85fd34ac4fe8e3dd17a87c7314a0c6956ab7538d2",
     "cognee-frontend/src/app/(app)/sessions/page.tsx": "d1a5d23088154d8fce052e0cb840e1f0c2aec3100e933f98120c3c78c87aeb97",
     "cognee-frontend/src/app/(app)/sessions/partials/useSessionProcessing.ts": "347e577a1503804b3452a7f7a0ca7cb58fd1309ff504cbe5798257ed9b17f064",
     "cognee-frontend/src/app/(app)/sessions/partials/RecordedRunCard.tsx": "8991a770d5a2012f062e951136754c46f33d6b14bf0125493e7e89ad016de17c",
     "cognee-frontend/src/app/(app)/sessions/partials/RecordedProcessingCard.tsx": "e2ed13c3f569c627a5e82d214e7c1416c656606a4d3e985b8747080747853e1e"
   },
-  "evidence_sha256": {
-    "/tmp/cognee-activity-acceptance-14b3f6f/verification-311/jest.log": {
-      "sha256": "ce658635cc5d9fea7e1445fd1242c7f4269d3cae6186f00aa46b6d199408d6c9",
-      "scope": "current source check"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/verification-311/jest.json": {
-      "sha256": "a4d2f565e1cca2e0bc6d1bacc1d90bba6d5798cb22d4836ae9997a85feec4fdb",
-      "scope": "current source check"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/verification-311/commands.json": {
-      "sha256": "b5c942e1d4055630b5287a0efb2f8bcb6f4479a43bcb347dd86a37d96e44332e",
-      "scope": "current source check"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/verification-311/run_checks.py": {
-      "sha256": "1cd2d2c643f80c4066c970145c3d2ed677015b30cab5e7693a5a5adb6b60f2a9",
-      "scope": "current source check"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/verification-311/github-readback.log": {
-      "sha256": "ee21c650ef4cb2147080d71a6668ccb271a6cb23d64bbeea2c49a19dd65156a6",
-      "scope": "current source check"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/final/browser_acceptance.py": {
-      "sha256": "f6d47e365366780ff219f0642ab0bd33796226b07142a13075d6139f793c05f2",
-      "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/final/browser_contract_acceptance.py": {
-      "sha256": "89b5af776ab6009691af011cde6c13760ccf9c68c9e2132b8a4db437273c7386",
-      "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/final/api_acceptance.py": {
-      "sha256": "81aec41528de51a31a22e1fd1a096fb58bb80368f588342a1260aeac532de8c7",
-      "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/final/browser_acceptance.command.log": {
-      "sha256": "a072f07da72a5e35d799ba3f63a33ee2c20b1dab2663df6a49740e8f26f90400",
-      "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/final/browser_contract_acceptance.command.log": {
-      "sha256": "a18f7b57f284ecb554c545a2f808749bb9f54980276d1ebde902015d3110e035",
-      "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/final/restart_acceptance.command.log": {
-      "sha256": "c45911eee8ff5f1f409ea014914e1f4afa1dee7221bb7495f09ba258b809ae1e",
-      "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
-    },
-    "/tmp/cognee-activity-acceptance-14b3f6f/final/restart-persistence.json": {
-      "sha256": "746bf0e2039451d3944f936c6f5b61943a0afc82299cbacd11f8ddc938a8fc72",
-      "scope": "prior 1d156bfd evidence/harness only; not executed in this run"
-    }
-  },
   "committed_text_receipts_sha256": {
-    "final-verification-jest.txt": "ce658635cc5d9fea7e1445fd1242c7f4269d3cae6186f00aa46b6d199408d6c9",
-    "final-verification-github-readback.txt": "ee21c650ef4cb2147080d71a6668ccb271a6cb23d64bbeea2c49a19dd65156a6"
+    "final-verification-jest.txt": "5fd6084c2b58d9b6142f3fc221bc1d2c58bebc980c1b99b58cc6f29f0b60d617",
+    "final-verification-github-readback.txt": "e7cfca79b0d65142712895b97d49d0666744adcf89bc773d228dacc5a3476c06",
+    "final-verification-build.txt": "b26d47d2b6503147db41416c66074a8ac625285fbdfde29d9a858f2b2c2b6e8b",
+    "final-verification-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-verification-targeted.txt": "e11b829af479167334680185b77902bc05c091463d0569ceb13d7cb4e53ed473",
+    "final-verification-native.json": "9c1860132fbbf165bd2d509047701d31fc9ee46c02c86150f4549f9e26f0334d"
   }
 }
