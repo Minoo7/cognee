@@ -30,6 +30,7 @@ import ProcessingSummary from "../partials/ProcessingSummary";
 import { useDatasetProcessing } from "@/modules/datasets/useDatasetProcessing";
 import { decodeFilename } from "@/utils/fileFormat";
 import mapInferredSchema from "@/modules/graphModels/mapInferredSchema";
+import { mapMemoryRow, type MemoryRow } from "@/modules/datasets/memoryDocument";
 import useMemoryDocuments from "@/modules/datasets/useMemoryDocuments";
 import MemoryControls from "@/modules/datasets/MemoryControls";
 import TrashIcon from "@/ui/elements/TrashIcon";
@@ -50,15 +51,7 @@ import ShareDatasetModal from "@/ui/elements/ShareDatasetModal";
 import { describeProcessingError } from "../processingErrorMessage";
 import { v4 as uuid } from "uuid";
 
-interface FileEntry {
-  externalMetadata?: unknown;
-  id: string;
-  name: string;
-  extension?: string;
-  mimeType?: string;
-  size?: number;
-  createdAt?: string;
-}
+type FileEntry = MemoryRow;
 
 
 // Default extraction prompt from cognee OSS (generate_graph_prompt.txt)
@@ -112,17 +105,9 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
     rawDataLocation?: string; originalExtension?: string; original_extension?: string;
     originalMimeType?: string; original_mime_type?: string; dataSize?: number; size_bytes?: number; file_size?: number;
   }>(cogniInstance, MAX_RENDERED_ROWS);
-  const files = useMemo(() => rawFiles.map(d => ({
-    id: d.id,
-    name: d.name || d.rawDataLocation?.split("/").pop() || d.id,
-    extension: d.originalExtension || d.original_extension || d.extension,
-    mimeType: d.originalMimeType || d.original_mime_type || d.mimeType,
-    size: d.dataSize ?? d.size ?? d.size_bytes ?? d.file_size,
-    createdAt: d.createdAt,
-    externalMetadata: d.externalMetadata,
-  })), [rawFiles]);
+  const files = useMemo(() => rawFiles.map(mapMemoryRow), [rawFiles]);
   const [memoryRevision, setMemoryRevision] = useState(0);
-  const memory = useMemoryDocuments(cogniInstance, datasetId, files, memoryRevision);
+  const memory = useMemoryDocuments(cogniInstance, datasetId, files, memoryRevision, filesTotal);
   const [isDragging, setIsDragging] = useState(false);
   const { stage: uploadStage, progress: uploadProgress, upload } = useBrainUpload(cogniInstance);
   const { pendingWarning: pendingLowBalanceWarning, isEstimating, confirmUpload, cancel: cancelLowBalanceUpload } = useLowBalanceUploadWarning();
@@ -135,7 +120,6 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
   const [deleting, setDeleting] = useState(false);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const [deleteFileTarget, setDeleteFileTarget] = useState<FileEntry | null>(null);
-  const [search, setSearch] = useState("");
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [confirmDeletePrompt, setConfirmDeletePrompt] = useState(false);
@@ -664,7 +648,7 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
     }
   }
 
-  const filtered = search ? memory.filtered.filter((f) => `${f.name} ${memory.summary(f)?.title ?? ""} ${memory.summary(f)?.snippet ?? ""}`.toLowerCase().includes(search.toLowerCase())) : memory.filtered;
+  const filtered = memory.filtered;
 
   if ((loading && files.length === 0) || isInitializing) {
     return <><TrackPageView page="Dataset Detail" additionalProperties={{ dataset_id: datasetId }} /><PageLoading name="Files" /></>;
@@ -876,17 +860,6 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
         />
       )}
 
-      {/* Search */}
-      <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, display: "flex", alignItems: "center", gap: 10, height: 40, paddingInline: 14 }}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="rgba(237,236,234,0.35)" strokeWidth="1.5" /><path d="M10.5 10.5L14 14" stroke="rgba(237,236,234,0.35)" strokeWidth="1.5" strokeLinecap="round" /></svg>
-        <input
-          type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder={hasMore ? "Search loaded files..." : "Search files..."}
-          style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: "#EDECEA", background: "transparent", fontFamily: "inherit" }}
-        />
-        {search && <button onClick={() => setSearch("")} className="cursor-pointer" style={{ background: "none", border: "none", color: "rgba(237,236,234,0.35)", fontSize: 14 }}>&#10005;</button>}
-      </div>
-
       {/* Memory customization */}
       <MemoryCustomizationBar
         graphModels={graphModels}
@@ -987,7 +960,7 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
       <FilesTable
         files={filtered.map(file => ({ ...file, completed: completionById.get(file.id) }))}
         memory={memory}
-        search={search}
+        search={memory.search}
         filtering={!memory.isAll}
         loadError={filesError && files.length === 0}
         onDelete={(id) => setDeleteFileTarget(filtered.find((f) => f.id === id) ?? null)}
@@ -998,7 +971,7 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
       {files.length > 0 && (
         <ScrollLoader loaded={files.length} total={filesTotal} hasMore={hasMore}
           maxLoaded={MAX_RENDERED_ROWS} busy={loading} error={filesError}
-          onLoadMore={loadMore} noun="files" autoLoad={!search && memory.isAll} />
+          onLoadMore={loadMore} noun="files" autoLoad={memory.isAll} />
       )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

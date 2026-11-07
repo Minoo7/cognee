@@ -1,3 +1,4 @@
+import type { MemoryRow } from "@/modules/datasets/memoryDocument";
 import type { DatasetProcessingStatus } from "@/modules/datasets/pollDatasetStatus";
 import type { DatasetProcessing } from "@/modules/datasets/useDatasetProcessing";
 import { INSUFFICIENT_CREDITS_REASON } from "@/modules/datasets/datasetStatusDetail";
@@ -12,14 +13,8 @@ export interface DatasetRaw {
   createdAt?: string;
 }
 
-export interface FileEntry {
-  externalMetadata?: unknown;
+export interface FileEntry extends MemoryRow {
   completed?: boolean;
-  id: string;
-  name: string;
-  extension?: string;
-  size?: number;
-  createdAt?: string;
 }
 
 export type DisplayStatus =

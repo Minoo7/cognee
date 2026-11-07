@@ -74,7 +74,7 @@ export default function DocumentsPanel<T extends DocRow>({
   onRetryDocs: () => void;
 }): ReactElement {
   const { cogniInstance } = useCogniInstance();
-  const memory = useMemoryDocuments(cogniInstance, selectedId, docs, memoryRevision);
+  const memory = useMemoryDocuments(cogniInstance, selectedId, docs, memoryRevision, total);
   const scrollRef = useRef<HTMLDivElement>(null);
   const displayedCount = total != null && total >= 0 ? total : docs.length;
   const fileInputRef = useRef<HTMLInputElement>(null);

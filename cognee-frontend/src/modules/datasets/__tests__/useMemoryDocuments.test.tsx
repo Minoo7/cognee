@@ -48,7 +48,7 @@ test('ordinary files cause no raw fetch and cannot be opened', () => {
 });
 test('opening a row takes the next slot ahead of queued previews', async () => {
   const releases: ((value: Response) => void)[] = [];
-  const fetch = jest.fn((_url: RequestInfo | URL) => new Promise<Response>(resolve => releases.push(resolve)));
+  const fetch = jest.fn<Promise<Response>, [RequestInfo | URL]>(() => new Promise<Response>(resolve => releases.push(resolve)));
   const owner = instance(fetch);
   const { result } = renderHook(() => useMemoryDocuments(owner, 'a', rows));
   expect(fetch).toHaveBeenCalledTimes(4);
@@ -56,18 +56,18 @@ test('opening a row takes the next slot ahead of queued previews', async () => {
   await act(async () => releases[0](response()));
   expect(fetch.mock.calls[4][0]).toContain('/data/70/raw');
 });
-test('reports need no preview and deletion preserves the remaining cache', async () => {
+test('reports are previewed within the same budget and deletion preserves the remaining cache', async () => {
   const report = { id: 'report', name: 'memory_dreaming_deep_2026-10-27-md' };
   const docs = [report, ...rows.slice(0, 2)];
   const fetch = jest.fn(async () => response());
   const owner = instance(fetch);
   const { result, rerender } = renderHook(({ docs }) => useMemoryDocuments(owner, 'a', docs), { initialProps: { docs } });
-  await waitFor(() => expect(result.current.previewed).toBe(2));
-  expect(fetch).toHaveBeenCalledTimes(2);
+  await waitFor(() => expect(result.current.previewed).toBe(3));
+  expect(fetch).toHaveBeenCalledTimes(3);
   expect(result.current.pending).toBe(0);
   expect(result.current.canPreview).toBe(false);
   rerender({ docs: [report, rows[1]] });
-  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(fetch).toHaveBeenCalledTimes(3);
   act(() => result.current.open('report'));
   await waitFor(() => expect(result.current.body?.kind).toBe('ready'));
   expect(fetch).toHaveBeenCalledTimes(3);

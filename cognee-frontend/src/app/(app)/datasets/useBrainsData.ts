@@ -1,4 +1,5 @@
 "use client";
+import { mapMemoryRow } from "@/modules/datasets/memoryDocument";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { notifications } from "@mantine/notifications";
@@ -475,7 +476,7 @@ export function useBrainsData(): UseBrainsDataResult {
     selectedId,
     selectedDataset,
     memoryRevision,
-    selectedDocs: selectedDocs.map(doc => ({ ...doc, completed: completionById.get(doc.id) })),
+    selectedDocs: selectedDocs.map(doc => ({ ...mapMemoryRow(doc), completed: completionById.get(doc.id) })),
     docsLoading,
     docsError,
     docsTotal,

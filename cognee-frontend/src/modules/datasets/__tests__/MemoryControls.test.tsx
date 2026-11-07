@@ -9,6 +9,8 @@ function Fixture() { const memory = useMemoryDocuments(owner, 'a', [row]); retur
 test('literal body, encoded source link, keyboard close and focus restoration', async () => {
   render(<Fixture />);
   const opener = screen.getByText('Open fixture'); opener.focus(); fireEvent.click(opener);
+  await screen.findByText('literal markdown');
+  fireEvent.click(screen.getByRole('button', { name: 'Raw' }));
   await waitFor(() => expect(screen.getByRole('dialog').querySelector('pre')?.textContent).toBe(body));
   expect(screen.getByRole('dialog').querySelector('script')).toBeNull();
   expect(screen.getByRole('link', { name: /Source session/ }).getAttribute('href')).toBe('/sessions?session=codex_safe');
