@@ -8,12 +8,9 @@
 # Pinned by digest so a compromised :latest tag cannot inject binaries into
 # the shipped image — same digest as scripts/fetch_ladybug_json_extension.sh,
 # which documents how to refresh both together on a ladybug bump.
-FROM ghcr.io/ladybugdb/extension-repo@sha256:180c83fb190e9d6ef8d324850b192db26794ab7cb866a38813a45365f14bd46d AS ladybug-extensions
-RUN mkdir -p /bundle && cd /usr/share/nginx/html && \
-    for f in v*/linux_*/json/libjson.lbug_extension; do \
-        d="/bundle/${f%/json/libjson.lbug_extension}"; \
-        mkdir -p "$d" && cp "$f" "$d/libjson.lbug_extension"; \
-    done
+FROM cognee-upgrade:baseline-1.6.0 AS ladybug-extensions
+USER root
+RUN mkdir -p /bundle && cp -a /app/cognee_db_workers/ladybug_extensions/. /bundle/
 
 # Use a Python image with uv pre-installed
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58 AS uv
