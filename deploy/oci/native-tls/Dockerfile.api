@@ -1,0 +1,5 @@
+FROM cognee-native-base-api:94216bc9e1e9
+COPY src/native_tls.py /opt/native-tls/native_tls.py
+COPY --chmod=755 src/api-entrypoint.sh /opt/native-tls/api-entrypoint.sh
+ENV PYTHONPATH=/opt/native-tls:/app
+ENTRYPOINT ["/opt/native-tls/api-entrypoint.sh"]

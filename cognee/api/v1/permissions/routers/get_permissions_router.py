@@ -634,7 +634,7 @@ def get_permissions_router() -> APIRouter:
         /permissions/tenants/... endpoints.
 
         ## Response
-        Returns a JSON list of tenants: [{"id", "name"}].
+        Returns a JSON list of tenants: [{"id", "name", "is_owner"}].
         """
         tenants_list = await method_get_user_tenants(user=user)
         return JSONResponse(status_code=200, content=tenants_list)

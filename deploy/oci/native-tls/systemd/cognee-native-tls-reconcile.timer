@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry Cognee native TLS certificate publication and reload
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+Unit=cognee-native-tls-reconcile.service
+
+[Install]
+WantedBy=timers.target
