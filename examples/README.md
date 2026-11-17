@@ -16,6 +16,8 @@ They double as the smoke-test corpus the team uses to verify behaviour across th
 | [`guides/graph_visualization.py`](guides/graph_visualization.py) | Render the resulting knowledge graph |
 | [`guides/sessions.py`](guides/sessions.py) | Session-scoped memory via `session_id` |
 
+For native retained-record and checkpoint metadata, see [session coverage](guides/session_coverage.md).
+
 ## 📁 Top-level layout
 
 | Folder | What lives there | Count |

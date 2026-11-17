@@ -143,3 +143,51 @@ class TestGetSessionRowUserIds:
             user_ids=[ids["parent_id"], ids["agent_id"]],
         )
         assert row is None
+
+
+@pytest.mark.asyncio
+async def test_exact_owner_collisions_and_shared_visibility():
+    a, b, caller, dataset = uuid4(), uuid4(), uuid4(), uuid4()
+    now = datetime.now(timezone.utc)
+    sid = "coverage-" + str(uuid4())
+    engine = get_relational_engine()
+    async with engine.engine.begin() as conn:
+        await conn.run_sync(SessionRecord.metadata.create_all)
+    async with engine.get_async_session() as session:
+        for owner, ds in [(a, dataset), (b, None)]:
+            session.add(
+                SessionRecord(
+                    session_id=sid,
+                    user_id=owner,
+                    dataset_id=ds,
+                    status="running",
+                    started_at=now,
+                    last_activity_at=now,
+                )
+            )
+        await session.commit()
+    try:
+        for owner in [a, b]:
+            row = await get_session_row(
+                session_id=sid, user_id=caller, user_ids=[a, b], owner_id=owner
+            )
+            assert row.user_id == owner
+        assert await get_session_row(session_id=sid, user_id=caller, owner_id=a) is None
+        row = await get_session_row(
+            session_id=sid, user_id=caller, permitted_dataset_ids=[dataset], owner_id=a
+        )
+        assert row.user_id == a
+        assert (
+            await get_session_row(
+                session_id=sid, user_id=caller, permitted_dataset_ids=[dataset], owner_id=b
+            )
+            is None
+        )
+        assert (
+            await get_session_row(session_id=sid, user_id=caller, user_ids=[a], owner_id=b) is None
+        )
+    finally:
+        async with engine.get_async_session() as session:
+            for owner in [a, b]:
+                await session.delete(await session.get(SessionRecord, (sid, owner)))
+            await session.commit()

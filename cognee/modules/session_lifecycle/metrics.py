@@ -371,8 +371,11 @@ async def get_session_row(
     user_ids: list[UUIDType] | None = None,
     permitted_dataset_ids: list[UUIDType] | None = None,
     prefer_other_owner: bool = False,
+    owner_id: UUIDType | None = None,
 ) -> SessionRecord | None:
     """Fetch a session row visible to the caller.
+
+    owner_id narrows the result to that owner without expanding visibility.
 
     Returns the row if the caller (or their child agents, via
     ``user_ids``) owns the session OR if the session's dataset is in
@@ -396,6 +399,7 @@ async def get_session_row(
             select(SessionRecord).where(
                 and_(
                     SessionRecord.session_id == session_id,
+                    SessionRecord.user_id == owner_id if owner_id is not None else True,
                     or_(*visibility_terms) if len(visibility_terms) > 1 else visibility_terms[0],
                 )
             )

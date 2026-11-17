@@ -7,6 +7,7 @@ abandonment-by-idle rule so no sweeper is needed.
 
 from datetime import datetime, timedelta, timezone
 from typing import Literal
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi.encoders import jsonable_encoder
@@ -447,6 +448,33 @@ def get_sessions_router() -> APIRouter:
         if not await delete_session(user.id, session_id):
             raise HTTPException(status_code=404, detail="session not found")
         return {"session_id": session_id, "deleted": True}
+
+    @router.get("/{session_id:path}/coverage")
+    async def get_session_coverage(
+        session_id: str,
+        owner_id: UUID = Query(...),
+        user: User = Depends(get_authenticated_user),
+    ):
+        from cognee.modules.session_lifecycle.coverage import read_session_coverage
+
+        try:
+            permitted = await get_permitted_dataset_ids(user.id)
+            visible_ids = await get_visible_user_ids(user.id)
+            row = await get_session_row(
+                session_id=session_id,
+                user_id=user.id,
+                user_ids=visible_ids,
+                permitted_dataset_ids=permitted,
+                owner_id=owner_id,
+            )
+            if row is None:
+                raise HTTPException(status_code=404, detail="session not found")
+            return await read_session_coverage(row)
+        except HTTPException:
+            raise
+        except Exception:
+            logger.exception("session coverage failed")
+            return JSONResponse(status_code=500, content={"error": "coverage_read_error"})
 
     @router.get("/{session_id}")
     async def get_session_detail(

@@ -1,0 +1,55 @@
+{
+  "base": "fc7aa5630eafd6a94ca0038ed8fed838f61243b9",
+  "feature": "native session Memory Coverage",
+  "deployed": false,
+  "backend_tests": 47,
+  "frontend_tests": 298,
+  "frontend_suites": 29,
+  "ruff_check": true,
+  "ruff_format_check": true,
+  "eslint": true,
+  "webpack_build_id": "v2kLZxGOT9iP0riuVtuIh",
+  "source_unchanged_during_verification": true,
+  "verified_source_sha256": {
+    "cognee-frontend/src/app/(app)/memory-gap-analysis/__tests__/page.test.tsx": "faeca8259348b7b4d9d46837132e69de0069968c0f73bd1fe644fe85b195273f",
+    "cognee-frontend/src/app/(app)/memory-gap-analysis/page.tsx": "92cd0b9e91a2de1a5ca221c20201a642bb220b2fceada9047b93457cc79086da",
+    "cognee-frontend/src/modules/sessions/__tests__/sessionCoverage.test.tsx": "719628ac09cfd6cdde4cead1c14c492375d9b13ce1bb055b42dbd97740701d44",
+    "cognee-frontend/src/modules/sessions/sessionCoverage.ts": "1383c372ceaf4c0f7bd5466380780bdf1afab45702596713b45930b59526efce",
+    "cognee-frontend/src/modules/sessions/useSessionCoverage.ts": "1fd73af6c065be162c40227976c71591edee2e6797e52fedc3488992cce74e3c",
+    "cognee-frontend/src/ui/layout/Navbar/CustomAppShellNavbar.tsx": "4381fb91c60faf0754b63e3e6e27d1af9a9736bdf5c71b09316282b87fb88b4c",
+    "cognee/api/v1/sessions/routers/get_sessions_router.py": "0a24bfc4fe12de6c946ca5752630ad41fa6cb1eaa99e4a2d38942d4d16a1141e",
+    "cognee/modules/session_lifecycle/coverage.py": "ea4ca93f594acd74e08fdf992df69f60f6233a5f492a19dc0dea28cd924a1f50",
+    "cognee/modules/session_lifecycle/metrics.py": "c94dd7a6e5585a04411a44267e515b20a245d1fcfa778d8e209daa25249acb39",
+    "cognee/tests/unit/api/test_session_coverage_route.py": "bfa01b1ac2947f16859799e00369ae976c187110b3f8096fba46828af8a0c743",
+    "cognee/tests/unit/api/v1/session/test_session_visibility.py": "21575e17f13b96867a0c607762355b3af0ac5dff50266f1b9e34b352954f9350",
+    "cognee/tests/unit/modules/session_lifecycle/test_session_coverage.py": "b6649d4296881c7e271b812cd771729aa5d6f2a29a2ed82643368c15029fad9d",
+    "examples/README.md": "54aa9b4fa34f0d008b7f436f5ba0b53bf1f271867b86ca2e51ebd5e04bfb198b",
+    "examples/guides/session_coverage.md": "49e56cd51f5153b8246ab62de9e96e473ede137db120078ddea76a86cae1c334"
+  },
+  "browser_cases": [
+    "native sidebar, styled selected control, URL and reload",
+    "real Q/A persistence checkpoint and difference",
+    "independent actual trace checkpoint",
+    "native Sessions and Activity navigation",
+    "fixture transient 500 stale and retry",
+    "fixture unsupported old server",
+    "fixture denial clears facts"
+  ],
+  "runtime_proof": [
+    "native Q/A received 1, checkpoint missing",
+    "actual persistence advanced Q/A checkpoint to 1",
+    "a subsequent Q/A produced retained 2, difference 1",
+    "actual trace persistence advanced its independent checkpoint to 1",
+    "outsider concealed 404 and same-ID owners isolated",
+    "fresh-process native cache, source and pipeline readback"
+  ],
+  "limits": [
+    "No live deployment or production backup was possible because the previous standalone host was unreachable.",
+    "Counts do not prove per-record membership after expiry, deletion or replacement.",
+    "Checkpoints are owner/session scoped, not dataset membership or current graph durability.",
+    "No LLM was configured; distillation skipped.",
+    "Real shared-dataset grant and datasetless boundaries are covered by SQL unit tests, not live grant acceptance.",
+    "Turbopack was not checked.",
+    "Coverage replaces the Cloud answerability placeholder with received-record/checkpoint inspection; brain query is ignored."
+  ]
+}

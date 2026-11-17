@@ -94,6 +94,7 @@ function KeyIcon({ active }: { active: boolean }) {
 // Routes that require the tenant pod — dimmed/locked while it provisions.
 const POD_DEPENDENT_LINKS = new Set([
   "/sessions",
+  "/memory-gap-analysis",
   "/datasets",
   "/search",
   "/skills",
@@ -121,6 +122,7 @@ const NAV_SECTIONS: NavSection[] = [
           { text: "Skills", link: "/skills", icon: SkillsIcon },
         ],
       },
+      { text: "Memory Coverage", link: "/memory-gap-analysis", icon: SessionsIcon },
       { text: "Graph", link: "/knowledge-graph", icon: GraphIcon },
       { text: "Search", link: "/search", icon: SearchIcon },
     ],
